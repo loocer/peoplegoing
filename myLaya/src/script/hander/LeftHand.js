@@ -36,6 +36,8 @@ export default class ImageRunTime extends Laya.Sprite{
             //变大还原的缓动效果
             utl.moveX = 0
             utl.moveY = 0
+            utl.takeSpeed.x = 0
+            utl.takeSpeed.y = 0
             // Laya.Tween.to(this,{scaleX:1,scaleY:1},this.scaleTime);
         }
         scaleSmall(e)
@@ -68,23 +70,46 @@ export default class ImageRunTime extends Laya.Sprite{
           return rotate
         }
         leftFormatMovePosition(e) {
-          if(!utl.tachLeftFlag){
-            return
-          }
-          utl.ani.play("hello");
-          console.log(utl.rote)
-          let pobj = {}
-          pobj.x1 = e.stageX //点击
-          pobj.x2 =this.tx + this.twidth/2
-          pobj.y1 = e.stageY
-          pobj.y2 = this.ty + this.theight/2
-          utl.box.transform.rotate(new Laya.Vector3(0,utl.rote* Math.PI / 180, 0), true);
-          utl.rote = this.getRoteImg(pobj) 
-          // tools.getRoteImg(pobj, databus.leftPositions)
-          let r = 1 / Math.sqrt((pobj.x1 - pobj.x2) * (pobj.x1 - pobj.x2) + (pobj.y1 - pobj.y2) * (pobj.y1 - pobj.y2))
-          utl.moveX = (pobj.x1 - pobj.x2) * r /10
-          utl.moveY = (pobj.y1 - pobj.y2) * r/10
-          utl.box.transform.rotate(new Laya.Vector3(0,-utl.rote* Math.PI / 180,0), true);
+          // if(!utl.tachLeftFlag){
+          //   return
+          // }
+          // // utl.ani.play("hello");
+          // let pobj = {}
+          // pobj.x1 = e.stageX //点击
+          // pobj.x2 =this.tx + this.twidth/2
+          // pobj.y1 = e.stageY
+          // pobj.y2 = this.ty + this.theight/2
+          // if((e.stageX - this.tx - this.twidth/2) / (this.twidth/2) >1){
+          //   utl.takeSpeed.x = 1
+          // }else{
+          //    utl.takeSpeed.x = (e.stageX - this.tx - this.twidth/2) / (this.twidth/2) 
+          // }
+          // if((e.stageX - this.tx - this.twidth/2) / (this.twidth/2) <-1){
+          //   utl.takeSpeed.x = -1
+          // }else{
+          //    utl.takeSpeed.x = (e.stageX - this.tx - this.twidth/2) / (this.twidth/2) 
+          // }
+          // if((e.stageY - this.ty - this.theight/2) / (this.theight/2) >1){
+          //    utl.takeSpeed.y = 1
+          // }else{
+          //   utl.takeSpeed.y = (e.stageY - this.ty - this.theight/2) / (this.theight/2) 
+          // }
+          // if((e.stageY - this.ty - this.theight/2) / (this.theight/2) <-1){
+          //    utl.takeSpeed.y = -1
+          // }else{
+          //   utl.takeSpeed.y = (e.stageY - this.ty - this.theight/2) / (this.theight/2) 
+          // }
+          // let x = 1,y=1,z=1
+          // console.log(utl.socket)
+           
+          // utl.takeSpeed.y = e.stageY - this.ty - this.theight/2
+          // utl.box.transform.rotate(new Laya.Vector3(0,utl.rote* Math.PI / 180, 0), true);
+          // utl.rote = this.getRoteImg(pobj) 
+          // // tools.getRoteImg(pobj, databus.leftPositions)
+          // let r = 1 / Math.sqrt((pobj.x1 - pobj.x2) * (pobj.x1 - pobj.x2) + (pobj.y1 - pobj.y2) * (pobj.y1 - pobj.y2))
+          // utl.moveX = (pobj.x1 - pobj.x2) * r /10
+          // utl.moveY = (pobj.y1 - pobj.y2) * r/10
+          // utl.box.transform.rotate(new Laya.Vector3(0,-utl.rote* Math.PI / 180,0), true);
           // console.log(this.moveX,this.moveY,utl.box.transform.position)
         }
 }

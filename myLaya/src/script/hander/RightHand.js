@@ -9,6 +9,11 @@ export default class ImageRunTime extends Laya.Sprite{
             this.y = Laya.stage.height - 350;
             this.moveX = 0
             this.moveY = 0
+            this.tx=Laya.stage.width - 350
+            this.twidth = 300
+            this.theight = 300
+            this.ty = Laya.stage.height - 350;
+            this.flag = false
             console.log(this.maind)
             
             //设置组件的中心点
@@ -23,6 +28,7 @@ export default class ImageRunTime extends Laya.Sprite{
         }
        scaleBig(e)
         {        
+            utl.takeSpeed.z = 0
             console.log('MOUSE_UP')
             utl.tachRightFlag = false
             // Laya.Tween.to(this,{scaleX:1,scaleY:1},this.scaleTime);
@@ -33,6 +39,7 @@ export default class ImageRunTime extends Laya.Sprite{
       
         scaleSmall(e)
         {    
+          
           if(this.tx<e.stageX&&
             e.stageX<this.tx+this.twidth&&
             this.ty<e.stageY&&
@@ -61,20 +68,27 @@ export default class ImageRunTime extends Laya.Sprite{
           return rotate
         }
         leftFormatMovePosition(e) {
-          if(!utl.tachRightFlag){
-            return
-          }
-          let pobj = {}
-          pobj.x1 = e.stageX //点击
-          pobj.x2 =this.x + this.width/2
-          pobj.y1 = e.stageY
-          pobj.y2 = this.y + this.height/2
-          utl.rote = this.getRoteImg(pobj) - utl.rote
-          // tools.getRoteImg(pobj, databus.leftPositions)
-          let r = 1 / Math.sqrt((pobj.x1 - pobj.x2) * (pobj.x1 - pobj.x2) + (pobj.y1 - pobj.y2) * (pobj.y1 - pobj.y2))
-          utl.moveX = (pobj.x1 - pobj.x2) * r 
-          utl.moveY = (pobj.y1 - pobj.y2) * r
-          // console.log(this.moveX,this.moveY,utl.box.transform.position)
+          // console.log(33333)
+          // if(!utl.tachRightFlag){
+          //   return
+          // }
+          // // utl.ani.play("hello");
+          // let pobj = {}
+          // pobj.x1 = e.stageX //点击
+          // pobj.x2 =this.tx + this.twidth/2
+          // pobj.y1 = e.stageY
+          // pobj.y2 = this.ty + this.theight/2
+        
+          // if((e.stageY - this.ty - this.theight/2) / (this.theight/2) >1){
+          //    utl.takeSpeed.z = 1
+          // }else{
+          //   utl.takeSpeed.z = (e.stageY - this.ty - this.theight/2) / (this.theight/2) 
+          // }
+          // if((e.stageY - this.ty - this.theight/2) / (this.theight/2) <-1){
+          //    utl.takeSpeed.z = -1
+          // }else{
+          //   utl.takeSpeed.z = (e.stageY - this.ty - this.theight/2) / (this.theight/2) 
+          // }
         }
 
 }

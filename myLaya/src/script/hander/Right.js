@@ -48,16 +48,16 @@ export default class ImageRunTime extends Laya.Sprite{
           return rotate
         }
         leftFormatMovePosition(e) {
-          let pobj = {}
-          pobj.x1 = e.stageX //点击
-          pobj.x2 =this.x + this.width/2
-          pobj.y1 = e.stageY
-          pobj.y2 = this.y + this.height/2
-          utl.rote = this.getRoteImg(pobj) - utl.rote
-          // tools.getRoteImg(pobj, databus.leftPositions)
-          let r = 1 / Math.sqrt((pobj.x1 - pobj.x2) * (pobj.x1 - pobj.x2) + (pobj.y1 - pobj.y2) * (pobj.y1 - pobj.y2))
-          utl.moveX = (pobj.x1 - pobj.x2) * r 
-          utl.moveY = (pobj.y1 - pobj.y2) * r
+          // let pobj = {}
+          // pobj.x1 = e.stageX //点击
+          // pobj.x2 =this.x + this.width/2
+          // pobj.y1 = e.stageY
+          // pobj.y2 = this.y + this.height/2
+          // utl.rote = this.getRoteImg(pobj) - utl.rote
+          // // tools.getRoteImg(pobj, databus.leftPositions)
+          // let r = 1 / Math.sqrt((pobj.x1 - pobj.x2) * (pobj.x1 - pobj.x2) + (pobj.y1 - pobj.y2) * (pobj.y1 - pobj.y2))
+          // utl.moveX = (pobj.x1 - pobj.x2) * r 
+          // utl.moveY = (pobj.y1 - pobj.y2) * r
           // console.log(this.moveX,this.moveY,utl.box.transform.position)
         }
 
