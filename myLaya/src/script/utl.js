@@ -22,5 +22,6 @@ export default  {
         position:null
     },
     ani:null,
+    ground:null,
     entity:new Map()
 }
