@@ -3,9 +3,10 @@
  * 相比脚本方式，继承式页面类，可以直接使用页面定义的属性（通过IDE内var属性定义），比如this.tipLbll，this.scoreLbl，具有代码提示效果
  * 建议：如果是页面级的逻辑，需要频繁访问页面内多个元素，使用继承式写法，如果是独立小模块，功能单一，建议用脚本方式实现，比如子弹脚本。
  */
- import newTouch from "./hander/newTouch.js"
-  import newTor from "./hander/newTor.js"
-  import utl from "./utl.js"
+import newTouch from "./hander/newTouch.js"
+import newTor from "./hander/newTor.js"
+import Boxsd from "./component/bugsScript.js"
+import utl from "./utl.js"
   let temp =null
 export default class GameUI extends Laya.Scene {
     constructor() {
@@ -41,12 +42,18 @@ export default class GameUI extends Laya.Scene {
             let min = mode.meshRenderer.bounds.getMin()
             let max = mode.meshRenderer.bounds.getMax()
             utl.coeb =  mode.meshRenderer.bounds.getExtent()
+            utl.pfrf = utl.coeb.x 
+            utl.fre = utl.coeb.z 
+            // utl.coeb =  mode.transform.position
             console.log(mode.meshRenderer.bounds)
             this.ground = {
+                min,
+                max,
                 w:max.x - min.x ,
                 h:max.z - min.z
             }
             this.setAllPosation(this.ground)
+            this.setBox()
             // layaMonkey2.transform.position =new Laya.Vector3(0,3,5)
         }));
         Laya.Sprite3D.load("res/LayaScene_SampleScene/Conventional/Main Camera.lh", Laya.Handler.create(null, (sp)=> {
@@ -61,9 +68,12 @@ export default class GameUI extends Laya.Scene {
          Laya.Sprite3D.load("res/LayaScene_SampleScene/Conventional/Directional Light.lh", Laya.Handler.create(null, (sp)=> {
             this.newScene.addChild(sp);
         }));
-         let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(1, 1,1)));
-        box4.transform.position =new Laya.Vector3(0,1,0)
-        box4.addComponent(boxsd);
+        
+    }
+    setBox(){
+        let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(1,.5,1)));
+        box4.transform.position =new Laya.Vector3(this.ground.min.x,.2,this.ground.min.z)
+        box4.addComponent(Boxsd);
         utl.box4 = box4
     }
     setGraph(){
@@ -77,14 +87,17 @@ export default class GameUI extends Laya.Scene {
         }
         utl.graphDiagonal = new Graph(list, { diagonal: true });
     }
-    setAllPosation({w,h}){
+    setAllPosation({w,h,min,max}){
+        let initx = this.ground.min.x 
+        let inity = this.ground.min.z 
         let pw = w/100
         let ph = h/100
         let list  = []
         for(let i=0;i<100;i++){
             let array = []
             for(let j=0;j<100;j++){
-                array.push([pw*j + utl.coeb.x,ph*i+utl.coeb.z])
+                // array.push([pw*j - utl.coeb.x,ph*i -utl.coeb.z])
+                array.push([pw*j +initx,ph*i+inity])
             }
             list.push(array)
         }
@@ -199,45 +212,7 @@ export default class GameUI extends Laya.Scene {
     }
     
 }
-class boxsd extends Laya.Script3D{
-    constructor(){
-        super();
-        this.scene = null;
-        this.text = null;
-        this.camera = null;
-        this.index = 0
-        this.result = []
-    }
-    onStart(){
-        this.scene =  this.owner.parent;
-    }
-    flying(touchCount){
-       
 
-    }
-    onUpdate(){
-        if(this.index%100==0){
-            if(this.result.length!=0&&utl.postions){
-                let p = this.result.shift()
-                let po = utl.postions[p.x][p.y]
-                console.log(po)
-                utl.box4.transform.position = new Laya.Vector3(po[0],1,po[1])
-            }
-               
-        }
-        if(this.index==1){
-            if(utl.graphDiagonal){
-                console.log(3333333)
-                this.result = astar.search(utl.graphDiagonal, utl.graphDiagonal.grid[0][0],  utl.graphDiagonal.grid[89][88]);
-            }
-            
-        }
-        this.index++
-
-    }
-    onLateUpdate() {
-    }
-}
 class MonkeyScript extends Laya.Script3D{
     constructor(){
         super();

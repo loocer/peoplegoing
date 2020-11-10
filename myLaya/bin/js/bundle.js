@@ -208,6 +208,80 @@
 
     }
 
+    class Boxsd extends Laya.Script3D{
+        constructor(){
+            super();
+            this.scene = null;
+            this.text = null;
+            this.camera = null;
+            this.index = 0;
+            this.moveY = 0;
+            this.moveX = 0;
+            this.tempPosition = null;
+            this.tempGard = null;
+            this.result = [];
+        }
+        onStart(){
+            this.scene =  this.owner.parent;
+            let temp = utl.graphDiagonal.grid[99][99];
+            this.tempPosition = utl.postions[temp.x][temp.y];
+            this.tempGard = utl.graphDiagonal.grid[0][0];
+        }
+        flying(){
+            let CONTANT = .002;
+            let pbox = this.result[0];
+            let po = utl.postions[pbox.x][pbox.y];
+            // this.tempPosition = po
+            // this.tempGard = utl.graphDiagonal.grid[pbox.x][pbox.y]
+            let pthis = this.owner.transform.position;
+            let fib = (po[0]-pthis.x)/(po[1]-pthis.z);
+            this.moveY = Math.sqrt(CONTANT/(fib*fib+CONTANT));
+            this.moveX = this.moveY*fib;
+
+        }
+        onUpdate(){
+            if(this.index%10==0){
+                if(this.result.length!=0&&utl.postions){
+                    let obj = this.result[0];
+                    let self = this.owner.transform.position;
+                    let po = utl.postions[obj.x][obj.y];
+                    let distance = Math.sqrt((po[0] - self.x) * (po[0] - self.x) + (po[1] - self.z) * (po[1] - self.z));
+                    console.log(po,'+++++++++');
+                    if(distance<this.moveY+this.moveX){
+                        this.result.shift();
+                        this.result.length!=0&&this.flying();
+                    }
+                    // let p = this.result.shift()
+                    // let po = utl.postions[p.x][p.y]
+                    // console.log(po)
+
+                    // this.owner.transform.translate(new Laya.Vector3(this.moveX,0,this.moveY),false);
+
+                    // utl.box.transform.position = new Laya.Vector3(this.owner.transform.position.x,1,this.owner.transform.position.z)
+                    this.owner.transform.position = new Laya.Vector3(this.tempPosition[0],1,this.tempPosition[1]);
+                }
+                   
+            }
+            if(this.index%100==0){
+                if(utl.graphDiagonal){
+                    console.log(3333333);
+                    let x = Math.ceil(Math.random()*10)*9;
+                    console.log(x);
+                    this.result = astar.search(utl.graphDiagonal, this.tempGard,  utl.graphDiagonal.grid[99][88]);
+                    this.flying();
+                    // let obj = utl.graphDiagonal.grid[99][99]
+                    // let po = utl.postions[obj.x][obj.y]
+                    // utl.box4.transform.position = new Laya.Vector3(utl.pfrf,1,utl.fre)
+                }
+                
+            }
+            this.index++;
+
+        }
+        onLateUpdate() {
+        }
+    }
+
     /**
      * 本示例采用非脚本的方式实现，而使用继承页面基类，实现页面逻辑。在IDE里面设置场景的Runtime属性即可和场景进行关联
      * 相比脚本方式，继承式页面类，可以直接使用页面定义的属性（通过IDE内var属性定义），比如this.tipLbll，this.scoreLbl，具有代码提示效果
@@ -248,12 +322,18 @@
                 let min = mode.meshRenderer.bounds.getMin();
                 let max = mode.meshRenderer.bounds.getMax();
                 utl.coeb =  mode.meshRenderer.bounds.getExtent();
+                utl.pfrf = utl.coeb.x; 
+                utl.fre = utl.coeb.z; 
+                // utl.coeb =  mode.transform.position
                 console.log(mode.meshRenderer.bounds);
                 this.ground = {
+                    min,
+                    max,
                     w:max.x - min.x ,
                     h:max.z - min.z
                 };
                 this.setAllPosation(this.ground);
+                this.setBox();
                 // layaMonkey2.transform.position =new Laya.Vector3(0,3,5)
             }));
             Laya.Sprite3D.load("res/LayaScene_SampleScene/Conventional/Main Camera.lh", Laya.Handler.create(null, (sp)=> {
@@ -268,9 +348,12 @@
              Laya.Sprite3D.load("res/LayaScene_SampleScene/Conventional/Directional Light.lh", Laya.Handler.create(null, (sp)=> {
                 this.newScene.addChild(sp);
             }));
-             let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(1, 1,1)));
-            box4.transform.position =new Laya.Vector3(0,1,0);
-            box4.addComponent(boxsd);
+            
+        }
+        setBox(){
+            let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(1,.5,1)));
+            box4.transform.position =new Laya.Vector3(this.ground.min.x,.2,this.ground.min.z);
+            box4.addComponent(Boxsd);
             utl.box4 = box4;
         }
         setGraph(){
@@ -284,14 +367,17 @@
             }
             utl.graphDiagonal = new Graph(list, { diagonal: true });
         }
-        setAllPosation({w,h}){
+        setAllPosation({w,h,min,max}){
+            let initx = this.ground.min.x; 
+            let inity = this.ground.min.z; 
             let pw = w/100;
             let ph = h/100;
             let list  = [];
             for(let i=0;i<100;i++){
                 let array = [];
                 for(let j=0;j<100;j++){
-                    array.push([pw*j + utl.coeb.x,ph*i+utl.coeb.z]);
+                    // array.push([pw*j - utl.coeb.x,ph*i -utl.coeb.z])
+                    array.push([pw*j +initx,ph*i+inity]);
                 }
                 list.push(array);
             }
@@ -406,45 +492,7 @@
         }
         
     }
-    class boxsd extends Laya.Script3D{
-        constructor(){
-            super();
-            this.scene = null;
-            this.text = null;
-            this.camera = null;
-            this.index = 0;
-            this.result = [];
-        }
-        onStart(){
-            this.scene =  this.owner.parent;
-        }
-        flying(touchCount){
-           
 
-        }
-        onUpdate(){
-            if(this.index%100==0){
-                if(this.result.length!=0&&utl.postions){
-                    let p = this.result.shift();
-                    let po = utl.postions[p.x][p.y];
-                    console.log(po);
-                    utl.box4.transform.position = new Laya.Vector3(po[0],1,po[1]);
-                }
-                   
-            }
-            if(this.index==1){
-                if(utl.graphDiagonal){
-                    console.log(3333333);
-                    this.result = astar.search(utl.graphDiagonal, utl.graphDiagonal.grid[0][0],  utl.graphDiagonal.grid[89][88]);
-                }
-                
-            }
-            this.index++;
-
-        }
-        onLateUpdate() {
-        }
-    }
     class MonkeyScript extends Laya.Script3D{
         constructor(){
             super();
