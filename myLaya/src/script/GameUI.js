@@ -71,7 +71,7 @@ export default class GameUI extends Laya.Scene {
         
     }
     setBox(){
-        let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(1,.5,1)));
+        let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(.2,.2,2)));
         box4.transform.position =new Laya.Vector3(this.ground.min.x,.2,this.ground.min.z)
         box4.addComponent(Boxsd);
         utl.box4 = box4

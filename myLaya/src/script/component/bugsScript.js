@@ -5,18 +5,26 @@ export  default class Boxsd extends Laya.Script3D{
         this.scene = null;
         this.text = null;
         this.camera = null;
-        this.index = 0
-        this.moveY = 0
-        this.moveX = 0
-        this.tempPosition = null
-        this.tempGard = null
+        this.flag = false
         this.result = []
+        this.position = utl.graphDiagonal.grid[0][9]
+        this.end = utl.graphDiagonal.grid[99][88]
+        this._position = null
     }
     onStart(){
         this.scene =  this.owner.parent;
-        let temp = utl.graphDiagonal.grid[99][99]
-        this.tempPosition = utl.postions[temp.x][temp.y]
-        this.tempGard = utl.graphDiagonal.grid[0][0]
+        // let temp = utl.graphDiagonal.grid[99][99]
+        // this.tempPosition = utl.postions[temp.x][temp.y]
+        // this.tempGard = utl.graphDiagonal.grid[0][0]
+        
+         
+         let p = this.position
+         let nextPoint = utl.postions[p.x][p.y]
+         this._position = new Laya.Vector3(nextPoint[0], 1, nextPoint[1]);
+         Laya.timer.frameLoop(1, this, ()=>{
+            this.owner.transform.position = this._position;
+         });
+          this.setGraps()
     }
     flying(){
         let CONTANT = .002
@@ -30,43 +38,32 @@ export  default class Boxsd extends Laya.Script3D{
         this.moveX = this.moveY*fib
 
     }
+    tod(){
+        alert(43434)
+    }
+
+    move(){
+        if(this.flag){
+           if(this.result.length!=0){
+                let ng = this.result[0]
+                let nextPoint = utl.postions[ng.x][ng.y]
+                Laya.Tween.to( this.owner, { x: nextPoint[0], y: 1, z: nextPoint[1] }, 10000,Laya.Handler.create(this,tod));
+                this.position = his.result.shift()
+            } 
+        }
+        
+    }
+    setGraps(){
+        this.result = astar.search(utl.graphDiagonal, this.position,  this.end);
+        // console.log(999)
+        let p = this.end
+        let nextPoint = utl.postions[p.x][p.y]
+        // console.log(nextPoint)
+        Laya.Tween.to( this._position, { x: nextPoint[0], y: 1, z: nextPoint[1] }, 50000,null,Laya.Handler.create(this,function(){alert(2333)}));
+        // Laya.Tween.to( utl.box, { transform.position.x: nextPoint[0], transform.position.y: 1, transform.position.z: nextPoint[1] }, 10000,null,Laya.Handler.create(this,function(){alert(333)}));
+    }
     onUpdate(){
-        if(this.index%10==0){
-            if(this.result.length!=0&&utl.postions){
-                let obj = this.result[0]
-                let self = this.owner.transform.position
-                let po = utl.postions[obj.x][obj.y]
-                let distance = Math.sqrt((po[0] - self.x) * (po[0] - self.x) + (po[1] - self.z) * (po[1] - self.z))
-                console.log(po,'+++++++++')
-                if(distance<this.moveY+this.moveX){
-                    this.result.shift()
-                    this.result.length!=0&&this.flying()
-                }
-                // let p = this.result.shift()
-                // let po = utl.postions[p.x][p.y]
-                // console.log(po)
-
-                // this.owner.transform.translate(new Laya.Vector3(this.moveX,0,this.moveY),false);
-
-                // utl.box.transform.position = new Laya.Vector3(this.owner.transform.position.x,1,this.owner.transform.position.z)
-                this.owner.transform.position = new Laya.Vector3(this.tempPosition[0],1,this.tempPosition[1])
-            }
-               
-        }
-        if(this.index%100==0){
-            if(utl.graphDiagonal){
-                console.log(3333333)
-                let x = Math.ceil(Math.random()*10)*9;
-                console.log(x)
-                this.result = astar.search(utl.graphDiagonal, this.tempGard,  utl.graphDiagonal.grid[99][88]);
-                this.flying()
-                // let obj = utl.graphDiagonal.grid[99][99]
-                // let po = utl.postions[obj.x][obj.y]
-                // utl.box4.transform.position = new Laya.Vector3(utl.pfrf,1,utl.fre)
-            }
-            
-        }
-        this.index++
+       
 
     }
     onLateUpdate() {

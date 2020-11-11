@@ -25,6 +25,7 @@
             position:null
         },
         ani:null,
+        ground:null,
         entity:new Map()
     };
 
@@ -207,6 +208,77 @@
 
     }
 
+    class Boxsd extends Laya.Script3D{
+        constructor(){
+            super();
+            this.scene = null;
+            this.text = null;
+            this.camera = null;
+            this.flag = false;
+            this.result = [];
+            this.position = utl.graphDiagonal.grid[0][9];
+            this.end = utl.graphDiagonal.grid[99][88];
+            this._position = null;
+        }
+        onStart(){
+            this.scene =  this.owner.parent;
+            // let temp = utl.graphDiagonal.grid[99][99]
+            // this.tempPosition = utl.postions[temp.x][temp.y]
+            // this.tempGard = utl.graphDiagonal.grid[0][0]
+            
+             
+             let p = this.position;
+             let nextPoint = utl.postions[p.x][p.y];
+             this._position = new Laya.Vector3(nextPoint[0], 1, nextPoint[1]);
+             Laya.timer.frameLoop(1, this, ()=>{
+                this.owner.transform.position = this._position;
+             });
+              this.setGraps();
+        }
+        flying(){
+            let CONTANT = .002;
+            let pbox = this.result[0];
+            let po = utl.postions[pbox.x][pbox.y];
+            // this.tempPosition = po
+            // this.tempGard = utl.graphDiagonal.grid[pbox.x][pbox.y]
+            let pthis = this.owner.transform.position;
+            let fib = (po[0]-pthis.x)/(po[1]-pthis.z);
+            this.moveY = Math.sqrt(CONTANT/(fib*fib+CONTANT));
+            this.moveX = this.moveY*fib;
+
+        }
+        tod(){
+            alert(43434);
+        }
+
+        move(){
+            if(this.flag){
+               if(this.result.length!=0){
+                    let ng = this.result[0];
+                    let nextPoint = utl.postions[ng.x][ng.y];
+                    Laya.Tween.to( this.owner, { x: nextPoint[0], y: 1, z: nextPoint[1] }, 10000,Laya.Handler.create(this,tod));
+                    this.position = his.result.shift();
+                } 
+            }
+            
+        }
+        setGraps(){
+            this.result = astar.search(utl.graphDiagonal, this.position,  this.end);
+            // console.log(999)
+            let p = this.end;
+            let nextPoint = utl.postions[p.x][p.y];
+            // console.log(nextPoint)
+            Laya.Tween.to( this._position, { x: nextPoint[0], y: 1, z: nextPoint[1] }, 50000,null,Laya.Handler.create(this,function(){alert(2333);}));
+            // Laya.Tween.to( utl.box, { transform.position.x: nextPoint[0], transform.position.y: 1, transform.position.z: nextPoint[1] }, 10000,null,Laya.Handler.create(this,function(){alert(333)}));
+        }
+        onUpdate(){
+           
+
+        }
+        onLateUpdate() {
+        }
+    }
+
     /**
      * 本示例采用非脚本的方式实现，而使用继承页面基类，实现页面逻辑。在IDE里面设置场景的Runtime属性即可和场景进行关联
      * 相比脚本方式，继承式页面类，可以直接使用页面定义的属性（通过IDE内var属性定义），比如this.tipLbll，this.scoreLbl，具有代码提示效果
@@ -218,12 +290,9 @@
             super();
             this.isTwoTouch = false;
             this.twoFirst = true;
-            this.temprx=0;
-            this.tempry=0;
-            this.temprz=0;
-            this.spled = 0;
-            
-            this.spledy=0;
+            this.ground = {};
+            utl.graphDiagonal = null;
+            utl.postions = null;
     		this.loadScene("test/TestScene.scene");
 
     		this.newScene = Laya.stage.addChild(new Laya.Scene3D());
@@ -240,21 +309,76 @@
             this.text.font = "Impact";
             this.text.fontSize = 20;
             this.text.borderColor = "#FFFF00";
+            this.setGraph();
             Laya.stage.addChild(this.text);
-
-    		Laya.Sprite3D.load("res/LayaScene_SampleScene/Conventional/ground.lh", Laya.Handler.create(null, (sp)=> {
+    		let dfp = Laya.Sprite3D.load("res/LayaScene_SampleScene/Conventional/ground.lh", Laya.Handler.create(null, (sp)=> {
                 this.newScene.addChild(sp);
+                utl.ground = sp;
+                let mode = sp.getChildByName("Obj3d66-1101934-1-638");
+                let sharedMesh = mode.meshFilter.sharedMesh;    
+                let min = mode.meshRenderer.bounds.getMin();
+                let max = mode.meshRenderer.bounds.getMax();
+                utl.coeb =  mode.meshRenderer.bounds.getExtent();
+                utl.pfrf = utl.coeb.x; 
+                utl.fre = utl.coeb.z; 
+                // utl.coeb =  mode.transform.position
+                console.log(mode.meshRenderer.bounds);
+                this.ground = {
+                    min,
+                    max,
+                    w:max.x - min.x ,
+                    h:max.z - min.z
+                };
+                this.setAllPosation(this.ground);
+                this.setBox();
                 // layaMonkey2.transform.position =new Laya.Vector3(0,3,5)
             }));
             Laya.Sprite3D.load("res/LayaScene_SampleScene/Conventional/Main Camera.lh", Laya.Handler.create(null, (sp)=> {
                 this.newScene.addChild(sp);
                 utl.box = sp;
+                sp.transform.position = new Laya.Vector3(0,40,0);
                 sp.addComponent(MonkeyScript);
+                
+                 console.log(sp.transform.position,'-==-=-=-=-=--');
+
             }));
              Laya.Sprite3D.load("res/LayaScene_SampleScene/Conventional/Directional Light.lh", Laya.Handler.create(null, (sp)=> {
                 this.newScene.addChild(sp);
             }));
-             
+            
+        }
+        setBox(){
+            let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(.2,.2,2)));
+            box4.transform.position =new Laya.Vector3(this.ground.min.x,.2,this.ground.min.z);
+            box4.addComponent(Boxsd);
+            utl.box4 = box4;
+        }
+        setGraph(){
+            let list  = [];
+            for(let i=0;i<100;i++){
+                let array = [];
+                for(let o=0;o<100;o++){
+                    array.push(1);
+                }
+                list.push(array);
+            }
+            utl.graphDiagonal = new Graph(list, { diagonal: true });
+        }
+        setAllPosation({w,h,min,max}){
+            let initx = this.ground.min.x; 
+            let inity = this.ground.min.z; 
+            let pw = w/100;
+            let ph = h/100;
+            let list  = [];
+            for(let i=0;i<100;i++){
+                let array = [];
+                for(let j=0;j<100;j++){
+                    // array.push([pw*j - utl.coeb.x,ph*i -utl.coeb.z])
+                    array.push([pw*j +initx,ph*i+inity]);
+                }
+                list.push(array);
+            }
+            utl.postions = list;
         }
         onUpdate() {
             console.log(55555);
@@ -365,6 +489,7 @@
         }
         
     }
+
     class MonkeyScript extends Laya.Script3D{
         constructor(){
             super();
@@ -390,6 +515,7 @@
             this.camera = this.scene.getChildByName("camera");
         }
         flying(touchCount){
+            
             // let touchCount = this.scene.input.touchCount();
             if (1 === touchCount){
                 //判断是否为两指触控，撤去一根手指后引发的touchCount===1
@@ -460,7 +586,9 @@
         onUpdate(){
             let touchCount = this.scene.input.touchCount();
             this.flying(touchCount);
-             this.owner.transform.translate(new Laya.Vector3(-utl.takeSpeed.x*utl.speedMove,0,-utl.takeSpeed.y*utl.speedMove),false);
+            this.owner.transform.translate(new Laya.Vector3(-utl.takeSpeed.x*utl.speedMove,0,-utl.takeSpeed.y*utl.speedMove),false);
+
+
         }
         onLateUpdate() {
         }
