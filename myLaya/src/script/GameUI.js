@@ -3,11 +3,10 @@
  * 相比脚本方式，继承式页面类，可以直接使用页面定义的属性（通过IDE内var属性定义），比如this.tipLbll，this.scoreLbl，具有代码提示效果
  * 建议：如果是页面级的逻辑，需要频繁访问页面内多个元素，使用继承式写法，如果是独立小模块，功能单一，建议用脚本方式实现，比如子弹脚本。
  */
-import newTouch from "./hander/newTouch.js"
-import newTor from "./hander/newTor.js"
-import Boxsd from "./component/bugsScript.js"
+
+import BugsComponent from "./component/bugsScript.js"
+import CameraComponent from "./component/cameraScript.js"
 import utl from "./utl.js"
-  let temp =null
 export default class GameUI extends Laya.Scene {
     constructor() {
         super();
@@ -17,24 +16,14 @@ export default class GameUI extends Laya.Scene {
         utl.graphDiagonal = null
         utl.postions = null
 		this.loadScene("test/TestScene.scene");
-
 		this.newScene = Laya.stage.addChild(new Laya.Scene3D());
-		temp = this
-
-        this.text = new Laya.Text();
-        this.text.y = 50;
-        this.text.name = "ceshi";
-        this.text.x = Laya.stage.width / 2 -100 ;
-        this.text.text = "触控点归零";
-        //显示文本显示框
-        this.text.overflow = Laya.Text.HIDDEN;
-        this.text.color = "#FFFFFF";
-        this.text.font = "Impact";
-        this.text.fontSize = 20;
-        this.text.borderColor = "#FFFF00";
         this.setGraph()
-        Laya.stage.addChild(this.text);
-		let dfp = Laya.Sprite3D.load("res/LayaScene_SampleScene/Conventional/ground.lh", Laya.Handler.create(null, (sp)=> {
+
+        // Laya.URL.basePath = "https://xuxin.love/img/1112/";
+        Laya.loader.load("https://xuxin.love/img/1112/res/LayaScene_SampleScene/Conventional/ground.lh", Laya.Handler.create(this, (rf)=>{
+            // console.log('rf------------',rf)
+        }));
+		let dfp = Laya.Sprite3D.load("res/33/LayaScene_SampleScene/Conventional/abj.lh", Laya.Handler.create(null, (sp)=> {
             this.newScene.addChild(sp);
             utl.ground = sp
             let mode = sp.getChildByName("Obj3d66-1101934-1-638");
@@ -45,7 +34,7 @@ export default class GameUI extends Laya.Scene {
             utl.pfrf = utl.coeb.x 
             utl.fre = utl.coeb.z 
             // utl.coeb =  mode.transform.position
-            console.log(mode.meshRenderer.bounds)
+            
             this.ground = {
                 min,
                 max,
@@ -53,27 +42,37 @@ export default class GameUI extends Laya.Scene {
                 h:max.z - min.z
             }
             this.setAllPosation(this.ground)
+            console.log(this.ground)
             this.setBox()
+
+            // staticCollider.isTrigger = true; //标记为触发器,取消物理反馈
+            
+            // utl.cube = cube
+            // cube.meshRenderer.enable = false;
+            // cube.addComponent(Laya.MeshCollider);
+           
+
+             // cars.addComponent(Laya.MeshCollider);
+            // let script1 = cars.addComponent(TriggerCollisionScript);
+            // script1.kinematicSprite = this.kinematicSphere;
+            this.setPointBox()
             // layaMonkey2.transform.position =new Laya.Vector3(0,3,5)
         }));
-        Laya.Sprite3D.load("res/LayaScene_SampleScene/Conventional/Main Camera.lh", Laya.Handler.create(null, (sp)=> {
+        Laya.Sprite3D.load("res/33/LayaScene_SampleScene/Conventional/Camera.lh", Laya.Handler.create(null, (sp)=> {
             this.newScene.addChild(sp);
             utl.box = sp
-            sp.transform.position = new Laya.Vector3(0,40,0)
-            sp.addComponent(MonkeyScript);
-            
-             console.log(sp.transform.position,'-==-=-=-=-=--')
+            sp.addComponent(CameraComponent);
 
         }));
-         Laya.Sprite3D.load("res/LayaScene_SampleScene/Conventional/Directional Light.lh", Laya.Handler.create(null, (sp)=> {
+         Laya.Sprite3D.load("res/33/LayaScene_SampleScene/Conventional/Directional Light.lh", Laya.Handler.create(null, (sp)=> {
             this.newScene.addChild(sp);
         }));
         
     }
     setBox(){
-        let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(.2,.2,2)));
-        box4.transform.position =new Laya.Vector3(this.ground.min.x,.2,this.ground.min.z)
-        box4.addComponent(Boxsd);
+        let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(.02,.02,.02)));
+        box4.transform.position =new Laya.Vector3(this.ground.min.x,0,this.ground.min.z)
+        box4.addComponent(BugsComponent);
         utl.box4 = box4
     }
     setGraph(){
@@ -102,6 +101,32 @@ export default class GameUI extends Laya.Scene {
             list.push(array)
         }
         utl.postions = list
+    }
+    setPointBox(){
+        let index = 0
+        for(let o in utl.postions){
+            let obj =  utl.postions[o]
+            for(let i in obj){
+                let box = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(.005,.005,.005)));
+                box.transform.position =new Laya.Vector3(obj[i][0],0,obj[i][1])
+                box.grad = [o,i]
+                this.newScene.addChild(box)
+                // let rigidBody = box.addComponent(Laya.Rigidbody3D);
+                // //创建球型碰撞器
+                // let coneShape = new Laya.ConeColliderShape(.1, .2);
+                // coneShape.isTrigger = true; //标记为触发器,取消物理反馈
+                //设置刚体碰撞器的形状
+                // rigidBody.colliderShape = coneShape;
+                //设置刚体碰撞器的质量 
+                let staticCollider = box.addComponent(Laya.PhysicsCollider); //StaticCollider可与非Kinematic类型RigidBody3D产生碰撞
+                let boxShape = new Laya.BoxColliderShape(.05,.05,.05);
+                staticCollider.colliderShape = boxShape;
+                staticCollider.isTrigger = true; //标记为触发器,取消物理反馈
+
+                let script = box.addComponent(TriggerCollisionScript);
+                script.kinematicSprite = this.kinematicSphere;
+            }
+        }
     }
     onUpdate() {
         console.log(55555)
@@ -213,106 +238,31 @@ export default class GameUI extends Laya.Scene {
     
 }
 
-class MonkeyScript extends Laya.Script3D{
+let list = 1
+class TriggerCollisionScript extends Laya.Script3D{
     constructor(){
         super();
-        this.scene = null;
-        this.text = null;
-        this.camera = null;
-        this.newTouch = new newTouch()
-        this.newTor = new newTor()
-        this.lastPosition = new Laya.Vector2(0, 0);
-        this.distance = 0.0;
-        this.disVector1 = new Laya.Vector2(0, 0);
-        this.disVector2 = new Laya.Vector2(0, 0);
-        this.isTwoTouch = false;
-        this.first = true;
-        this.twoFirst = true;
-        this.rotate = new Laya.Vector3(0,0,0);
-        this.translate = new Laya.Vector3(0,0,0);
-        this.sprite3DSacle = new Laya.Vector3(0,0,0);
     }
-    onStart(){
-        this.scene =  this.owner.parent;
-        this.text = this.scene.parent.getChildByName("ceshi");
-        this.camera = this.scene.getChildByName("camera");
-    }
-    flying(touchCount){
+    onTriggerEnter(other) {
         
-        // let touchCount = this.scene.input.touchCount();
-        if (1 === touchCount){
-            //判断是否为两指触控，撤去一根手指后引发的touchCount===1
-            if(this.isTwoTouch){
-                return;
-            }
-            let touch = this.scene.input.getTouch(0);
-           if(this.newTouch.scaleSmall(touch.position.x,touch.position.y)){
-                this.newTouch.leftFormatMovePosition(touch.position.x,touch.position.y)
-            }
-
-            if(this.newTor.scaleSmall(touch.position.x,touch.position.y)){
-                this.newTor.leftFormatMovePosition(touch.position.x,touch.position.y)
-            }
-            
-        }
-        else if (2 === touchCount){
-            this.isTwoTouch = true;
-            //获取两个触碰点
-            let touch = this.scene.input.getTouch(0);
-            let touch2 = this.scene.input.getTouch(1);
-            //是否为新一次触碰，并未发生移动
-            if (this.twoFirst){
-                //获取触碰点的位置
-                // this.disVector1.x = touch.position.x - touch2.position.x;
-                // this.disVector1.y = touch.position.y - touch2.position.y;
-                // this.distance = Laya.Vector2.scalarLength(this.disVector1);
-                // this.sprite3DSacle = this.owner.transform.scale;
-                this.twoFirst = false;
-
-            }
-            else{
-                if(this.newTouch.scaleSmall(touch.position.x,touch.position.y)){
-                    this.newTouch.leftFormatMovePosition(touch.position.x,touch.position.y)
-                }
-                if(this.newTouch.scaleSmall(touch2.position.x,touch2.position.y)){
-                    this.newTouch.leftFormatMovePosition(touch.position.x,touch.position.y)
-                }
-
-                if(this.newTor.scaleSmall(touch.position.x,touch.position.y)){
-                    this.newTor.leftFormatMovePosition(touch.position.x,touch.position.y)
-                }
-                if(this.newTor.scaleSmall(touch2.position.x,touch2.position.y)){
-                    this.newTor.leftFormatMovePosition(touch.position.x,touch.position.y)
-                }
-                // this.disVector2.x = touch.position.x - touch2.position.x;
-                // this.disVector2.y = touch.position.y - touch2.position.y;
-                // let distance2 = Laya.Vector2.scalarLength(this.disVector2);
-                // //根据移动的距离进行缩放
-                // let factor =  0.001 * (distance2 - this.distance);
-                // this.sprite3DSacle.x += factor;
-                // this.sprite3DSacle.y += factor;
-                // this.sprite3DSacle.z += factor;
-                // this.owner.transform.scale = this.sprite3DSacle;
-                // this.distance = distance2;
-            }   
-        }
-        else if (0 === touchCount){
-            // this.text.text = "触控点归零";
-            this.first = true;
-            this.twoFirst = true;
-            // this.lastPosition.x = 0;
-            // this.lastPosition.y = 0;
-            this.isTwoTouch = false;
-        }
-
+        this.owner.grad.weight = 0
+        console.log(list)
+        list++
     }
-    onUpdate(){
-        let touchCount = this.scene.input.touchCount();
-        this.flying(touchCount)
-        this.owner.transform.translate(new Laya.Vector3(-utl.takeSpeed.x*utl.speedMove,0,-utl.takeSpeed.y*utl.speedMove),false);
 
+    onTriggerStay(other) {
+    }
 
+    onTriggerExit(other) {
+        console.log('离开了')
     }
-    onLateUpdate() {
+    onCollisionEnter(collision) {
+        if (collision.other.owner === this.kinematicSprite)
+             console.log('分段收费')
     }
+    onCollisionStay(collision) {
+    }
+    onCollisionExit(collision) {
+    }
+    
 }

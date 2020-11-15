@@ -9,7 +9,7 @@ export default class ImageRunTime extends Laya.Sprite{
             this.y = 0;
             this.moveX = 0
             this.moveY = 0
-            this.tx=50
+            this.tx=150
             this.twidth = 300
             this.theight = 300
             this.ty = Laya.stage.height - 350;
@@ -18,13 +18,13 @@ export default class ImageRunTime extends Laya.Sprite{
             
             //设置组件的中心点
             this.anchorX = this.anchorY = 0.5;
-            //添加鼠标按下事件侦听。按时时缩小按钮。
-            this.on(Laya.Event.MOUSE_DOWN,this,this.scaleSmall);
-            //添加鼠标抬起事件侦听。抬起时还原按钮。
-            this.on(Laya.Event.MOUSE_UP,this, this.scaleBig);
-            //添加鼠标离开事件侦听。离开时还原按钮。
-            this.on(Laya.Event.MOUSE_OUT,this, this.outEvent);
-            this.on(Laya.Event.MOUSE_MOVE,this, this.leftFormatMovePosition);
+            // //添加鼠标按下事件侦听。按时时缩小按钮。
+            // this.on(Laya.Event.MOUSE_DOWN,this,this.scaleSmall);
+            // //添加鼠标抬起事件侦听。抬起时还原按钮。
+            // this.on(Laya.Event.MOUSE_UP,this, this.scaleBig);
+            // //添加鼠标离开事件侦听。离开时还原按钮。
+            // this.on(Laya.Event.MOUSE_OUT,this, this.outEvent);
+            // this.on(Laya.Event.MOUSE_MOVE,this, this.leftFormatMovePosition);
         }
         outEvent(){
           utl.tachLeftFlag = false

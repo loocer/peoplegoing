@@ -6,4 +6,6 @@ if ((typeof swan !== 'undefined') && (typeof swanGlobal !== 'undefined')) {
 	require("libs/min/laya.wxmini.min.js");
 }
 window.loadLib = require;
+Graph  = require("astar.js").Graph;
+astar= require("astar.js").astar;
 require("index.js");

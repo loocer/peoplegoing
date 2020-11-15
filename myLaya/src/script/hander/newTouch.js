@@ -9,7 +9,7 @@ export default class newtach{
             this.y = 0;
             this.moveX = 0
             this.moveY = 0
-            this.tx=50
+            this.tx=150
             this.twidth = 300
             this.theight = 300
             this.ty = Laya.stage.height - 350;

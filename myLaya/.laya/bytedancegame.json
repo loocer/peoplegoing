@@ -65,11 +65,11 @@
     "clearReleaseDir": true,
     "compile": false,
     "forceCompile": false,
-    "onlyIndexJS": true,
+    "onlyIndexJS": false,
     "useMinJsLibs": true,
     "es6toes5": false,
     "projectType": "js",
-    "pubTime": 1605110884948,
+    "pubTime": 1605240688669,
     "bytedanceInfo": {
         "orientation": "landscape"
     }

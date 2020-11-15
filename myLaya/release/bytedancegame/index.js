@@ -9,9 +9,9 @@ window.screenOrientation = "sensor_landscape";
 
 //-----libs-begin-----
 require("./libs/min/laya.core.min.js")
-require("./libs/min/laya.core.min.js")
 require("./libs/min/laya.ui.min.js")
 require("./libs/min/laya.d3.min.js")
 require("./libs/min/laya.physics3D.min.js")
 //-----libs-end-------
+require("./astar.js");
 require("./js/bundle.js");
