@@ -5,29 +5,113 @@
     	tachLeftFlag:false,//左边点击
     	tachRightFlag:false,//左边点击
     	box:null,
+        player:null,
     	moveX:0,
-    	rote:0,
         moveY:0,
         speedMove:.05,
-        speed:{
-        	z:0,
-        	x:0,
-        	y:0
-        },
-        takeSpeed:{
-        	z:0,
-        	x:0,
-        	y:0
-        },
-        comitObj:{
-            userId:null,
-            rotation:null,
-            position:null
-        },
-        ani:null,
         ground:null,
-        entity:new Map()
+        leftHand:{},
+        minPisition:{
+            x:null,
+            y:null
+        },
+        getRoteImg:(pobj, acObj)=> {
+          if (pobj.x1 == pobj.x2){
+            acObj.rotate=0;
+          }
+          if (pobj.x1 > pobj.x2) {
+            let atanrotate = (pobj.y1 - pobj.y2) / (pobj.x1 - pobj.x2);
+            acObj.rotate = ~~(Math.atan(atanrotate) / Math.PI * 180) + 90;
+          } else if (pobj.x1 < pobj.x2) {
+            let atanrotate = (pobj.y1 - pobj.y2) / (pobj.x1 - pobj.x2);
+            acObj.rotate = ~~(Math.atan(atanrotate) / Math.PI * 180) + 270;
+          }
+        }
     };
+
+    class bugs extends Laya.Script3D{
+        constructor(){
+            super();
+            this.scene = null;
+            this.text = null;
+            this.camera = null;
+            this.flag = true;
+            this.result = [];
+            this.position = utl.graphDiagonal.grid[0][0];
+            this.end = utl.graphDiagonal.grid[10][0];
+            this._position = null;
+            this.updataPositionFlag = true;
+        }
+        onStart(){
+            this.scene =  this.owner.parent;
+             let p = this.position;
+             let nextPoint = utl.postions[p.x][p.y];
+             this._position = new Laya.Vector3(nextPoint[0], 1, nextPoint[1]);
+             Laya.timer.frameLoop(1, this, ()=>{
+                this.owner.transform.position = this._position;
+             });
+             Laya.timer.frameLoop(100, this, ()=>{
+                this.move();
+             });
+              // this.setGraps()
+        }
+        flying(){
+            let CONTANT = .002;
+            let pbox = this.result[0];
+            let po = utl.postions[pbox.x][pbox.y];
+            // this.tempPosition = po
+            // this.tempGard = utl.graphDiagonal.grid[pbox.x][pbox.y]
+            let pthis = this.owner.transform.position;
+            let fib = (po[0]-pthis.x)/(po[1]-pthis.z);
+            this.moveY = Math.sqrt(CONTANT/(fib*fib+CONTANT));
+            this.moveX = this.moveY*fib;
+
+        }
+
+        move(){
+            this.flag = true;
+            
+        }
+        gradAlgin(){
+            if(this.updataPositionFlag){
+                this.setGraps();
+            }
+        }
+        setGraps(){
+            if(this.result.length!=0){
+                let temp = this;
+                let p =  this.result.shift();
+                let nextPoint = utl.postions[p.x][p.y];
+                this.position = p;
+                temp.updataPositionFlag = false;
+                Laya.Tween.to( this._position, { x: nextPoint[0], y: 0, z: nextPoint[1] }, 1000,null,Laya.Handler.create(this,()=>{
+                    temp.updataPositionFlag = true;
+                    temp.gradAlgin();
+                }));
+            }
+           
+            // Laya.Tween.to( utl.box, { transform.position.x: nextPoint[0], transform.position.y: 1, transform.position.z: nextPoint[1] }, 10000,null,Laya.Handler.create(this,function(){alert(333)}));
+        }
+        getPlayerPosition(){
+            let position = utl.player.transform.position;
+            let minPisition = utl.minPisition;
+            let gx = Math.floor((position.x - utl.ground.min.x) / minPisition.x);
+            let gy = Math.floor((position.z - utl.ground.min.z) / minPisition.y);
+            console.log(gx,gy,'-------------');
+            return  utl.graphDiagonal.grid[gy][gx]
+        }
+        onUpdate(){
+           if(this.flag){
+                let end = this.getPlayerPosition();
+                this.result = astar.search(utl.graphDiagonal, this.position, end);
+                this.flag = false;
+                this.gradAlgin();
+           }
+            
+        }
+        onLateUpdate() {
+        }
+    }
 
     class newtach{
         constructor(){
@@ -91,31 +175,44 @@
             leftFormatMovePosition(px,py) {
               
               // utl.ani.play("hello");
+              // let pobj = {}
+              // pobj.x1 = px //点击
+              // pobj.x2 =this.tx + this.twidth/2
+              // pobj.y1 = py
+              // pobj.y2 = this.ty + this.theight/2
+              // if((px - this.tx - this.twidth/2) / (this.twidth/2) >1){
+              //   utl.takeSpeed.x = 1
+              // }else{
+              //    utl.takeSpeed.x = (px - this.tx - this.twidth/2) / (this.twidth/2) 
+              // }
+              // if((px - this.tx - this.twidth/2) / (this.twidth/2) <-1){
+              //   utl.takeSpeed.x = -1
+              // }else{
+              //    utl.takeSpeed.x = (px - this.tx - this.twidth/2) / (this.twidth/2) 
+              // }
+              // if((py - this.ty - this.theight/2) / (this.theight/2) >1){
+              //    utl.takeSpeed.y = 1
+              // }else{
+              //   utl.takeSpeed.y = (py - this.ty - this.theight/2) / (this.theight/2) 
+              // }
+              // if((py - this.ty - this.theight/2) / (this.theight/2) <-1){
+              //    utl.takeSpeed.y = -1
+              // }else{
+              //   utl.takeSpeed.y = (py - this.ty - this.theight/2) / (this.theight/2) 
+              // }
               let pobj = {};
               pobj.x1 = px; //点击
               pobj.x2 =this.tx + this.twidth/2;
               pobj.y1 = py;
               pobj.y2 = this.ty + this.theight/2;
-              if((px - this.tx - this.twidth/2) / (this.twidth/2) >1){
-                utl.takeSpeed.x = 1;
-              }else{
-                 utl.takeSpeed.x = (px - this.tx - this.twidth/2) / (this.twidth/2); 
-              }
-              if((px - this.tx - this.twidth/2) / (this.twidth/2) <-1){
-                utl.takeSpeed.x = -1;
-              }else{
-                 utl.takeSpeed.x = (px - this.tx - this.twidth/2) / (this.twidth/2); 
-              }
-              if((py - this.ty - this.theight/2) / (this.theight/2) >1){
-                 utl.takeSpeed.y = 1;
-              }else{
-                utl.takeSpeed.y = (py - this.ty - this.theight/2) / (this.theight/2); 
-              }
-              if((py - this.ty - this.theight/2) / (this.theight/2) <-1){
-                 utl.takeSpeed.y = -1;
-              }else{
-                utl.takeSpeed.y = (py - this.ty - this.theight/2) / (this.theight/2); 
-              }
+              // utl.box.transform.rotate(new Laya.Vector3(0, utl.rote* Math.PI / 180, 0), true);
+              // utl.rote = this.getRoteImg(pobj) 
+              let r = 1 / Math.sqrt((pobj.x1 - pobj.x2) * (pobj.x1 - pobj.x2) + (pobj.y1 - pobj.y2) * (pobj.y1 - pobj.y2));
+              utl.moveX = (pobj.x1 - pobj.x2) * r /5;
+              utl.moveY = (pobj.y1 - pobj.y2) * r/5;
+              // utl.box.transform.rotate(new Laya.Vector3(0, -utl.rote* Math.PI / 180, 0), true);
+
+
               // utl.takeSpeed.y = py - this.ty - this.theight/2
               // utl.box.transform.rotate(new Laya.Vector3(0,utl.rote* Math.PI / 180, 0), true);
               // utl.rote = this.getRoteImg(pobj) 
@@ -208,274 +305,6 @@
 
     }
 
-    class Boxsd extends Laya.Script3D{
-        constructor(){
-            super();
-            this.scene = null;
-            this.text = null;
-            this.camera = null;
-            this.flag = false;
-            this.result = [];
-            this.position = utl.graphDiagonal.grid[0][9];
-            this.end = utl.graphDiagonal.grid[99][88];
-            this._position = null;
-        }
-        onStart(){
-            this.scene =  this.owner.parent;
-            // let temp = utl.graphDiagonal.grid[99][99]
-            // this.tempPosition = utl.postions[temp.x][temp.y]
-            // this.tempGard = utl.graphDiagonal.grid[0][0]
-            
-             
-             let p = this.position;
-             let nextPoint = utl.postions[p.x][p.y];
-             this._position = new Laya.Vector3(nextPoint[0], 1, nextPoint[1]);
-             Laya.timer.frameLoop(1, this, ()=>{
-                this.owner.transform.position = this._position;
-             });
-              this.setGraps();
-        }
-        flying(){
-            let CONTANT = .002;
-            let pbox = this.result[0];
-            let po = utl.postions[pbox.x][pbox.y];
-            // this.tempPosition = po
-            // this.tempGard = utl.graphDiagonal.grid[pbox.x][pbox.y]
-            let pthis = this.owner.transform.position;
-            let fib = (po[0]-pthis.x)/(po[1]-pthis.z);
-            this.moveY = Math.sqrt(CONTANT/(fib*fib+CONTANT));
-            this.moveX = this.moveY*fib;
-
-        }
-        tod(){
-            alert(43434);
-        }
-
-        move(){
-            if(this.flag){
-               if(this.result.length!=0){
-                    let ng = this.result[0];
-                    let nextPoint = utl.postions[ng.x][ng.y];
-                    Laya.Tween.to( this.owner, { x: nextPoint[0], y: 1, z: nextPoint[1] }, 10000,Laya.Handler.create(this,tod));
-                    this.position = his.result.shift();
-                } 
-            }
-            
-        }
-        setGraps(){
-            this.result = astar.search(utl.graphDiagonal, this.position,  this.end);
-            // console.log(999)
-            let p = this.end;
-            let nextPoint = utl.postions[p.x][p.y];
-            // console.log(nextPoint)
-            Laya.Tween.to( this._position, { x: nextPoint[0], y: 1, z: nextPoint[1] }, 50000,null,Laya.Handler.create(this,function(){alert(2333);}));
-            // Laya.Tween.to( utl.box, { transform.position.x: nextPoint[0], transform.position.y: 1, transform.position.z: nextPoint[1] }, 10000,null,Laya.Handler.create(this,function(){alert(333)}));
-        }
-        onUpdate(){
-           
-
-        }
-        onLateUpdate() {
-        }
-    }
-
-    /**
-     * 本示例采用非脚本的方式实现，而使用继承页面基类，实现页面逻辑。在IDE里面设置场景的Runtime属性即可和场景进行关联
-     * 相比脚本方式，继承式页面类，可以直接使用页面定义的属性（通过IDE内var属性定义），比如this.tipLbll，this.scoreLbl，具有代码提示效果
-     * 建议：如果是页面级的逻辑，需要频繁访问页面内多个元素，使用继承式写法，如果是独立小模块，功能单一，建议用脚本方式实现，比如子弹脚本。
-     */
-    class GameUI extends Laya.Scene {
-        constructor() {
-            super();
-            this.isTwoTouch = false;
-            this.twoFirst = true;
-            this.ground = {};
-            utl.graphDiagonal = null;
-            utl.postions = null;
-    		this.loadScene("test/TestScene.scene");
-    		this.newScene = Laya.stage.addChild(new Laya.Scene3D());
-            this.setGraph();
-
-            // Laya.URL.basePath = "https://xuxin.love/img/1112/";
-    		let dfp = Laya.Sprite3D.load("https://xuxin.love/img/1112/res/LayaScene_SampleScene/Conventional/ground.lh", Laya.Handler.create(null, (sp)=> {
-                this.newScene.addChild(sp);
-                utl.ground = sp;
-                let mode = sp.getChildByName("Obj3d66-1101934-1-638");
-                let sharedMesh = mode.meshFilter.sharedMesh;    
-                let min = mode.meshRenderer.bounds.getMin();
-                let max = mode.meshRenderer.bounds.getMax();
-                utl.coeb =  mode.meshRenderer.bounds.getExtent();
-                utl.pfrf = utl.coeb.x; 
-                utl.fre = utl.coeb.z; 
-                // utl.coeb =  mode.transform.position
-                console.log(mode.meshRenderer.bounds);
-                this.ground = {
-                    min,
-                    max,
-                    w:max.x - min.x ,
-                    h:max.z - min.z
-                };
-                this.setAllPosation(this.ground);
-                this.setBox();
-                // layaMonkey2.transform.position =new Laya.Vector3(0,3,5)
-            }));
-            Laya.Sprite3D.load("https://xuxin.love/img/1112/res/LayaScene_SampleScene/Conventional/Main Camera.lh", Laya.Handler.create(null, (sp)=> {
-                this.newScene.addChild(sp);
-                utl.box = sp;
-                sp.transform.position = new Laya.Vector3(0,40,0);
-                sp.addComponent(MonkeyScript);
-                
-                 console.log(sp.transform.position,'-==-=-=-=-=--');
-
-            }));
-             Laya.Sprite3D.load("https://xuxin.love/img/1112/res/LayaScene_SampleScene/Conventional/Directional Light.lh", Laya.Handler.create(null, (sp)=> {
-                this.newScene.addChild(sp);
-            }));
-            
-        }
-        setBox(){
-            let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(.2,.2,2)));
-            box4.transform.position =new Laya.Vector3(this.ground.min.x,.2,this.ground.min.z);
-            box4.addComponent(Boxsd);
-            utl.box4 = box4;
-        }
-        setGraph(){
-            let list  = [];
-            for(let i=0;i<100;i++){
-                let array = [];
-                for(let o=0;o<100;o++){
-                    array.push(1);
-                }
-                list.push(array);
-            }
-            utl.graphDiagonal = new Graph(list, { diagonal: true });
-        }
-        setAllPosation({w,h,min,max}){
-            let initx = this.ground.min.x; 
-            let inity = this.ground.min.z; 
-            let pw = w/100;
-            let ph = h/100;
-            let list  = [];
-            for(let i=0;i<100;i++){
-                let array = [];
-                for(let j=0;j<100;j++){
-                    // array.push([pw*j - utl.coeb.x,ph*i -utl.coeb.z])
-                    array.push([pw*j +initx,ph*i+inity]);
-                }
-                list.push(array);
-            }
-            utl.postions = list;
-        }
-        onUpdate() {
-            console.log(55555);
-            // if(utl.box){
-            //      utl.box.transform.position =new Laya.Vector3(utl.takeSpeed.x,utl.box.transform.position.y,utl.takeSpeed.y)
-           
-            // }
-            
-        }
-        createBug(){
-            // let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(2, 2,2)));
-            // box4.transform.position =new Laya.Vector3(0,3,0)
-           
-            // let boxBody = box4.addComponent(Laya.Rigidbody3D);
-            // //创建盒子形状碰撞器
-            // let boxShape1 = new Laya.BoxColliderShape(2, 2,2);
-            // //设置盒子的碰撞形状
-            // boxBody.colliderShape = boxShape1;
-            // // boxBody.mass = 0; 
-            // boxBody.isKinematic = true;
-            // boxBody.gravity =  new Laya.Vector3(0,0,0)
-            // boxBody.isTrigger = true;
-            // box4.addComponent(BoxMove);
-            // utl.entity.set('obx',box4)
-            // Laya.Sprite3D.load("res/test/w.lh", Laya.Handler.create(null, (sp)=> {
-            //     let layaMonkey1 = this.newScene.addChild(sp);
-            //     utl.entity.set('obx',layaMonkey1)
-            //     console.log(layaMonkey1,sp)
-            // }));
-        }
-        creaPlayer(){
-            // let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(1, 2,3)));
-            // // box4.transform.rotate(new Laya.Vector3(2 * Math.PI / 180,0, 10 * Math.PI / 180), true, true);
-            // let material1 = new Laya.BlinnPhongMaterial();
-            // Laya.Texture2D.load("res/atlas/comp.png", Laya.Handler.create(null, function(tex) {
-            //         material1.albedoTexture = tex;
-            // }));
-            // box4.meshRenderer.material = material1;
-            // box4.transform.position =new Laya.Vector3(0,3,5)
-           
-            // let boxBody = box4.addComponent(Laya.Rigidbody3D);
-            // //创建盒子形状碰撞器
-            // let boxShape1 = new Laya.BoxColliderShape(1, 2,3);
-            // //设置盒子的碰撞形状
-            // boxBody.colliderShape = boxShape1;
-            // //设置刚体的质量
-            // boxBody.friction = 2;
-            // //物理碰撞体设置弹力
-            // boxBody.restitution = 0.3;
-            // boxBody.isKinematic = true;
-            // boxBody.gravity =  new Laya.Vector3(0,0,0)
-            // // boxBody.mass = 0;
-            // box4.addComponent(BoxMove3);
-            //  utl.box = box4
-            Laya.Sprite3D.load("res/t2/LayaScene_fff/Conventional/runyes.lh", Laya.Handler.create(null, (sp)=> {
-                let layaMonkey1 = this.newScene.addChild(sp);
-                // layaMonkey1.transform.position =new Laya.Vector3(0,3,5)
-                // layaMonkey1.transform.rotate(new Laya.Vector3(90* Math.PI / 180,0, 0), true);
-                utl.box = layaMonkey1;
-                // console.log(layaMonkey1,sp)
-                utl.ani = layaMonkey1.getComponent(Laya.Animator);
-                //创建一个动画动作状态
-                var state1 = new Laya.AnimatorState();
-                //设置动作状态的名称
-                state1.name = "hello";
-                //设置动作状态播放的起始时间（起始时间与结束时间的设置为0-1的百分比数值）  要截取的时间点 / 动画的总时长
-                state1.clipStart = 0/45;
-                //设置动作状态播放的结束时间
-                state1.clipEnd = 45/45;
-                //得到默认动画赋值给Clip（getDefaultState默认动画为Unity中animation的数组顺序0下标的动画）
-                state1.clip = utl.ani.getDefaultState().clip;
-                //动画播放是否循环
-                state1.clip.islooping = true;
-                //添加动画状态到动画组件里
-                utl.ani.addState(state1);
-                //播放动画
-                
-            }));
-             // utl.fds = this.creab
-        }
-        creabox(py){
-            for(let i=0;i<2;i++){
-                for(let l=0;l<2;l++){
-                    let box5 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(1,1,1)));
-                    box5.transform.rotate(new Laya.Vector3(2 * Math.PI / 180,0, 10 * Math.PI / 180), true, true);
-                    let material1 = new Laya.BlinnPhongMaterial();
-                     box5.transform.position = new Laya.Vector3(l,py+3, i);
-                   
-                    let bg = box5.addComponent(Laya.Rigidbody3D);
-                    //创建盒子形状碰撞器
-                    let boxShape1 = new Laya.BoxColliderShape(1, 1,1);
-                    //设置盒子的碰撞形状
-                    bg.colliderShape = boxShape1;
-                    //设置刚体的质量
-                    bg.friction = 2;
-                    //物理碰撞体设置弹力
-                    bg.restitution = 0.3;
-                    bg.mass = 10;
-
-                }
-            }
-            
-        }
-        creab(){
-            for(let f=0;f<2;f++){
-                this.creabox(f);
-            }
-        }
-        
-    }
-
     class MonkeyScript extends Laya.Script3D{
         constructor(){
             super();
@@ -566,18 +395,394 @@
                 // this.lastPosition.x = 0;
                 // this.lastPosition.y = 0;
                 this.isTwoTouch = false;
+                utl.moveX = 0;
+                utl.moveY = 0;
             }
 
         }
         onUpdate(){
             let touchCount = this.scene.input.touchCount();
             this.flying(touchCount);
-            this.owner.transform.translate(new Laya.Vector3(-utl.takeSpeed.x*utl.speedMove,0,-utl.takeSpeed.y*utl.speedMove),false);
-
-
+            this.owner.transform.translate(new Laya.Vector3(-utl.moveX*utl.speedMove,0,-utl.moveY*utl.speedMove),false);
+            utl.player&&utl.player.transform.translate(new Laya.Vector3(-utl.moveX*utl.speedMove,0,-utl.moveY*utl.speedMove),false);
+            // utl.cube&&utl.cube.transform.translate(new Laya.Vector3(-utl.moveX*utl.speedMove,0,-utl.moveY*utl.speedMove),false);
         }
         onLateUpdate() {
         }
+    }
+
+    let address = 'http://192.168.2.103:3000';
+    let HttpRequest = Laya.HttpRequest;
+    let Event       = Laya.Event;
+    let result = {};
+    const getPixels = ()=>
+    {	
+    	return new Promise((reject)=>{
+    		let obj = {};
+    		let hr = new HttpRequest();
+    		// let id = Date.parse(new  Date())
+    		let id = 435;
+    		function onHttpRequestProgress(e){
+    			console.log(e);
+    		}
+    		function onHttpRequestComplete(e){
+    			reject(hr.data);
+    		}
+    		function onHttpRequestError(e){
+    			console.log(e);
+    		}
+    		
+    		hr.once(Event.PROGRESS, undefined, onHttpRequestProgress);
+    		hr.once(Event.COMPLETE, undefined, onHttpRequestComplete);
+    		hr.once(Event.ERROR, undefined, onHttpRequestError);
+    		hr.send(address+'/get-alluser', '', 'get', 'text');
+    	})
+    	
+    	
+    };
+    const getServiceAddress = ()=>
+    {
+    	let hr = new HttpRequest();
+    	function onHttpRequestProgress(e){
+    		console.log(123);
+    	}
+    	function onHttpRequestComplete(e){
+    		result.serviceAddress = JSON.parse(hr.data).data;
+    		login();
+    		console.log(3458888,result);
+    	}
+    	function onHttpRequestError(e){
+    		console.log(534543,e);
+    	}
+    	hr.once(Event.PROGRESS, undefined, onHttpRequestProgress);
+    	hr.once(Event.COMPLETE, undefined, onHttpRequestComplete);
+    	hr.once(Event.ERROR, undefined, onHttpRequestError);
+    	hr.send(address+'/get-socketAddress', '', 'get', 'text');
+    	
+    };
+    const intoRoom = ()=>
+    {
+    	let headers = [
+    		"Content-Type", "application/x-www-form-urlencoded",
+    		'token', result.userInfo.token,
+    		'user_id',result.userInfo.id
+    	];
+    	let hr = new HttpRequest();
+    	function onHttpRequestProgress(e){
+    		console.log(123);
+    	}
+    	function onHttpRequestComplete(e){
+    		socketMain();
+    		console.log(888888888,hr);
+    	}
+    	function onHttpRequestError(e){
+    		console.log(534543,e);
+    	}
+    	hr.once(Event.PROGRESS, undefined, onHttpRequestProgress);
+    	hr.once(Event.COMPLETE, undefined, onHttpRequestComplete);
+    	hr.once(Event.ERROR, undefined, onHttpRequestError);
+    	hr.send(address+'/into-room?roomNo=123', null, 'get', 'text',headers);
+    	
+    };
+
+    /**
+     * 本示例采用非脚本的方式实现，而使用继承页面基类，实现页面逻辑。在IDE里面设置场景的Runtime属性即可和场景进行关联
+     * 相比脚本方式，继承式页面类，可以直接使用页面定义的属性（通过IDE内var属性定义），比如this.tipLbll，this.scoreLbl，具有代码提示效果
+     * 建议：如果是页面级的逻辑，需要频繁访问页面内多个元素，使用继承式写法，如果是独立小模块，功能单一，建议用脚本方式实现，比如子弹脚本。
+     */
+    class GameUI extends Laya.Scene {
+        constructor() {
+            super();
+            this.isTwoTouch = false;
+            this.twoFirst = true;
+            this.ground = {};
+            utl.graphDiagonal = null;
+            utl.postions = null;
+    		this.loadScene("test/TestScene.scene");
+    		this.newScene = Laya.stage.addChild(new Laya.Scene3D());
+            
+
+            // Laya.URL.basePath = "https://xuxin.love/img/1112/";
+            // Laya.loader.load("https://xuxin.love/img/1112/res/LayaScene_SampleScene/Conventional/ground.lh", Laya.Handler.create(this, (rf)=>{
+            //     // console.log('rf------------',rf)
+            // }));
+            //  Laya.loader.load("res/22/end.png", Laya.Handler.create(this, (rf)=>{
+            //     // this.createGridFromAStarMap(rf)
+            //     console.log('rf------------',rf)
+            // }));
+
+    		let dfp = Laya.Sprite3D.load("https://xuxin.love/img/1112/22/LayaScene_SampleScene/Conventional/abj.lh", Laya.Handler.create(null, (sp)=> {
+                this.newScene.addChild(sp);
+                // utl.ground = sp
+                let mode = sp.getChildByName("Obj3d66-1101934-1-638");
+                let sharedMesh = mode.meshFilter.sharedMesh;    
+                let min = mode.meshRenderer.bounds.getMin();
+                let max = mode.meshRenderer.bounds.getMax();
+                utl.coeb =  mode.meshRenderer.bounds.getExtent();
+                utl.pfrf = utl.coeb.x; 
+                utl.fre = utl.coeb.z; 
+                // utl.coeb =  mode.transform.position
+                
+                this.ground = {
+                    min,
+                    max,
+                    w:max.x - min.x ,
+                    h:max.z - min.z
+                };
+                utl.ground = this.ground;
+                this.setAllPosation(this.ground);
+                console.log(this.ground);
+                
+                this.setGraph();
+                // staticCollider.isTrigger = true; //标记为触发器,取消物理反馈
+                
+                // utl.cube = cube
+                // cube.meshRenderer.enable = false;
+                // cube.addComponent(Laya.MeshCollider);
+               
+
+                 // cars.addComponent(Laya.MeshCollider);
+                // let script1 = cars.addComponent(TriggerCollisionScript);
+                // script1.kinematicSprite = this.kinematicSphere;
+                // this.setPointBox()
+                // layaMonkey2.transform.position =new Laya.Vector3(0,3,5)
+            }));
+            Laya.Sprite3D.load("https://xuxin.love/img/1112/22/LayaScene_SampleScene/Conventional/Camera.lh", Laya.Handler.create(null, (sp)=> {
+                this.newScene.addChild(sp);
+                utl.box = sp;
+                sp.addComponent(MonkeyScript);
+
+            }));
+             Laya.Sprite3D.load("https://xuxin.love/img/1112/22/LayaScene_SampleScene/Conventional/Directional Light.lh", Laya.Handler.create(null, (sp)=> {
+                this.newScene.addChild(sp);
+            }));
+             Laya.Sprite3D.load("https://xuxin.love/img/1112/22/LayaScene_SampleScene/Conventional/Cube.lh", Laya.Handler.create(null, (sp)=> {
+                this.newScene.addChild(sp);
+                utl.player = sp;
+            }));
+             Laya.timer.frameLoop(1000, this, ()=>{
+                this.addBugs();
+             });
+            
+        }
+        addBugs(){
+            if(utl.box4){
+                 let bulletClone = utl.box4.clone();
+                //为子弹加控制脚本
+                bulletClone.transform.position =new Laya.Vector3(this.ground.min.x,0,this.ground.min.z);
+                let script = bulletClone.addComponent(bugs);
+                this.newScene.addChild(bulletClone);   
+            }
+           
+        }
+        setBox(){
+            let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(.02,.02,.02)));
+            box4.transform.position =new Laya.Vector3(this.ground.min.x,0,this.ground.min.z);
+            box4.addComponent(bugs);
+            utl.box4 = box4;
+        }
+        setGraph(){
+            // let list  = []
+            // for(let i=0;i<117;i++){
+            //     let array = []
+            //     for(let o=0;o<100;o++){
+            //         array.push(1)
+            //     }
+            //     list.push(array)
+            // }
+            // utl.graphDiagonal = new Graph(list, { diagonal: true });
+            // this.setBox()
+            getPixels().then((list)=>{
+                console.log(list);
+                utl.graphDiagonal = new Graph(JSON.parse(list), { diagonal: true });
+                this.setBox();
+            });
+            
+        }
+        
+        setAllPosation({w,h,min,max}){
+            let initx = this.ground.min.x; 
+            let inity = this.ground.min.z; 
+            let pw = w/100;
+            let ph = h/117;
+            utl.minPisition = {
+                x:pw,
+                y:ph
+            };
+            let list  = [];
+            for(let i=0;i<117;i++){
+                let array = [];
+                for(let j=0;j<100;j++){
+                    // array.push([pw*j - utl.coeb.x,ph*i -utl.coeb.z])
+                    array.push([pw*j +initx,ph*i+inity]);
+                }
+                list.push(array);
+            }
+            utl.postions = list;
+        }
+        setPointBox(){
+            let index = 0;
+            for(let o in utl.postions){
+                let obj =  utl.postions[o];
+                for(let i in obj){
+                    let box = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(.005,.005,.005)));
+                    box.transform.position =new Laya.Vector3(obj[i][0],0,obj[i][1]);
+                    box.grad = [o,i];
+                    this.newScene.addChild(box);
+                    // let rigidBody = box.addComponent(Laya.Rigidbody3D);
+                    // //创建球型碰撞器
+                    // let coneShape = new Laya.ConeColliderShape(.1, .2);
+                    // coneShape.isTrigger = true; //标记为触发器,取消物理反馈
+                    //设置刚体碰撞器的形状
+                    // rigidBody.colliderShape = coneShape;
+                    //设置刚体碰撞器的质量 
+                    let staticCollider = box.addComponent(Laya.PhysicsCollider); //StaticCollider可与非Kinematic类型RigidBody3D产生碰撞
+                    let boxShape = new Laya.BoxColliderShape(.05,.05,.05);
+                    staticCollider.colliderShape = boxShape;
+                    staticCollider.isTrigger = true; //标记为触发器,取消物理反馈
+
+                    let script = box.addComponent(TriggerCollisionScript);
+                    script.kinematicSprite = this.kinematicSphere;
+                }
+            }
+        }
+        onUpdate() {
+            console.log(55555);
+            // if(utl.box){
+            //      utl.box.transform.position =new Laya.Vector3(utl.takeSpeed.x,utl.box.transform.position.y,utl.takeSpeed.y)
+           
+            // }
+            
+        }
+        createBug(){
+            // let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(2, 2,2)));
+            // box4.transform.position =new Laya.Vector3(0,3,0)
+           
+            // let boxBody = box4.addComponent(Laya.Rigidbody3D);
+            // //创建盒子形状碰撞器
+            // let boxShape1 = new Laya.BoxColliderShape(2, 2,2);
+            // //设置盒子的碰撞形状
+            // boxBody.colliderShape = boxShape1;
+            // // boxBody.mass = 0; 
+            // boxBody.isKinematic = true;
+            // boxBody.gravity =  new Laya.Vector3(0,0,0)
+            // boxBody.isTrigger = true;
+            // box4.addComponent(BoxMove);
+            // utl.entity.set('obx',box4)
+            // Laya.Sprite3D.load("res/test/w.lh", Laya.Handler.create(null, (sp)=> {
+            //     let layaMonkey1 = this.newScene.addChild(sp);
+            //     utl.entity.set('obx',layaMonkey1)
+            //     console.log(layaMonkey1,sp)
+            // }));
+        }
+        creaPlayer(){
+            // let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(1, 2,3)));
+            // // box4.transform.rotate(new Laya.Vector3(2 * Math.PI / 180,0, 10 * Math.PI / 180), true, true);
+            // let material1 = new Laya.BlinnPhongMaterial();
+            // Laya.Texture2D.load("res/atlas/comp.png", Laya.Handler.create(null, function(tex) {
+            //         material1.albedoTexture = tex;
+            // }));
+            // box4.meshRenderer.material = material1;
+            // box4.transform.position =new Laya.Vector3(0,3,5)
+           
+            // let boxBody = box4.addComponent(Laya.Rigidbody3D);
+            // //创建盒子形状碰撞器
+            // let boxShape1 = new Laya.BoxColliderShape(1, 2,3);
+            // //设置盒子的碰撞形状
+            // boxBody.colliderShape = boxShape1;
+            // //设置刚体的质量
+            // boxBody.friction = 2;
+            // //物理碰撞体设置弹力
+            // boxBody.restitution = 0.3;
+            // boxBody.isKinematic = true;
+            // boxBody.gravity =  new Laya.Vector3(0,0,0)
+            // // boxBody.mass = 0;
+            // box4.addComponent(BoxMove3);
+            //  utl.box = box4
+            Laya.Sprite3D.load("res/t2/LayaScene_fff/Conventional/runyes.lh", Laya.Handler.create(null, (sp)=> {
+                let layaMonkey1 = this.newScene.addChild(sp);
+                // layaMonkey1.transform.position =new Laya.Vector3(0,3,5)
+                // layaMonkey1.transform.rotate(new Laya.Vector3(90* Math.PI / 180,0, 0), true);
+                utl.box = layaMonkey1;
+                // console.log(layaMonkey1,sp)
+                utl.ani = layaMonkey1.getComponent(Laya.Animator);
+                //创建一个动画动作状态
+                let state1 = new Laya.AnimatorState();
+                //设置动作状态的名称
+                state1.name = "hello";
+                //设置动作状态播放的起始时间（起始时间与结束时间的设置为0-1的百分比数值）  要截取的时间点 / 动画的总时长
+                state1.clipStart = 0/45;
+                //设置动作状态播放的结束时间
+                state1.clipEnd = 45/45;
+                //得到默认动画赋值给Clip（getDefaultState默认动画为Unity中animation的数组顺序0下标的动画）
+                state1.clip = utl.ani.getDefaultState().clip;
+                //动画播放是否循环
+                state1.clip.islooping = true;
+                //添加动画状态到动画组件里
+                utl.ani.addState(state1);
+                //播放动画
+                
+            }));
+             // utl.fds = this.creab
+        }
+        creabox(py){
+            for(let i=0;i<2;i++){
+                for(let l=0;l<2;l++){
+                    let box5 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(1,1,1)));
+                    box5.transform.rotate(new Laya.Vector3(2 * Math.PI / 180,0, 10 * Math.PI / 180), true, true);
+                    let material1 = new Laya.BlinnPhongMaterial();
+                     box5.transform.position = new Laya.Vector3(l,py+3, i);
+                   
+                    let bg = box5.addComponent(Laya.Rigidbody3D);
+                    //创建盒子形状碰撞器
+                    let boxShape1 = new Laya.BoxColliderShape(1, 1,1);
+                    //设置盒子的碰撞形状
+                    bg.colliderShape = boxShape1;
+                    //设置刚体的质量
+                    bg.friction = 2;
+                    //物理碰撞体设置弹力
+                    bg.restitution = 0.3;
+                    bg.mass = 10;
+
+                }
+            }
+            
+        }
+        creab(){
+            for(let f=0;f<2;f++){
+                this.creabox(f);
+            }
+        }
+        
+    }
+
+    let list = 1;
+    class TriggerCollisionScript extends Laya.Script3D{
+        constructor(){
+            super();
+        }
+        onTriggerEnter(other) {
+            
+            this.owner.grad.weight = 0;
+            console.log(list);
+            list++;
+        }
+
+        onTriggerStay(other) {
+        }
+
+        onTriggerExit(other) {
+            console.log('离开了');
+        }
+        onCollisionEnter(collision) {
+            if (collision.other.owner === this.kinematicSprite)
+                 console.log('分段收费');
+        }
+        onCollisionStay(collision) {
+        }
+        onCollisionExit(collision) {
+        }
+        
     }
 
     class ImageRunTime extends Laya.Sprite{

@@ -61,31 +61,44 @@ export default class newtach{
         leftFormatMovePosition(px,py) {
           
           // utl.ani.play("hello");
+          // let pobj = {}
+          // pobj.x1 = px //点击
+          // pobj.x2 =this.tx + this.twidth/2
+          // pobj.y1 = py
+          // pobj.y2 = this.ty + this.theight/2
+          // if((px - this.tx - this.twidth/2) / (this.twidth/2) >1){
+          //   utl.takeSpeed.x = 1
+          // }else{
+          //    utl.takeSpeed.x = (px - this.tx - this.twidth/2) / (this.twidth/2) 
+          // }
+          // if((px - this.tx - this.twidth/2) / (this.twidth/2) <-1){
+          //   utl.takeSpeed.x = -1
+          // }else{
+          //    utl.takeSpeed.x = (px - this.tx - this.twidth/2) / (this.twidth/2) 
+          // }
+          // if((py - this.ty - this.theight/2) / (this.theight/2) >1){
+          //    utl.takeSpeed.y = 1
+          // }else{
+          //   utl.takeSpeed.y = (py - this.ty - this.theight/2) / (this.theight/2) 
+          // }
+          // if((py - this.ty - this.theight/2) / (this.theight/2) <-1){
+          //    utl.takeSpeed.y = -1
+          // }else{
+          //   utl.takeSpeed.y = (py - this.ty - this.theight/2) / (this.theight/2) 
+          // }
           let pobj = {}
           pobj.x1 = px //点击
           pobj.x2 =this.tx + this.twidth/2
           pobj.y1 = py
           pobj.y2 = this.ty + this.theight/2
-          if((px - this.tx - this.twidth/2) / (this.twidth/2) >1){
-            utl.takeSpeed.x = 1
-          }else{
-             utl.takeSpeed.x = (px - this.tx - this.twidth/2) / (this.twidth/2) 
-          }
-          if((px - this.tx - this.twidth/2) / (this.twidth/2) <-1){
-            utl.takeSpeed.x = -1
-          }else{
-             utl.takeSpeed.x = (px - this.tx - this.twidth/2) / (this.twidth/2) 
-          }
-          if((py - this.ty - this.theight/2) / (this.theight/2) >1){
-             utl.takeSpeed.y = 1
-          }else{
-            utl.takeSpeed.y = (py - this.ty - this.theight/2) / (this.theight/2) 
-          }
-          if((py - this.ty - this.theight/2) / (this.theight/2) <-1){
-             utl.takeSpeed.y = -1
-          }else{
-            utl.takeSpeed.y = (py - this.ty - this.theight/2) / (this.theight/2) 
-          }
+          // utl.box.transform.rotate(new Laya.Vector3(0, utl.rote* Math.PI / 180, 0), true);
+          // utl.rote = this.getRoteImg(pobj) 
+          let r = 1 / Math.sqrt((pobj.x1 - pobj.x2) * (pobj.x1 - pobj.x2) + (pobj.y1 - pobj.y2) * (pobj.y1 - pobj.y2))
+          utl.moveX = (pobj.x1 - pobj.x2) * r /5
+          utl.moveY = (pobj.y1 - pobj.y2) * r/5
+          // utl.box.transform.rotate(new Laya.Vector3(0, -utl.rote* Math.PI / 180, 0), true);
+
+
           // utl.takeSpeed.y = py - this.ty - this.theight/2
           // utl.box.transform.rotate(new Laya.Vector3(0,utl.rote* Math.PI / 180, 0), true);
           // utl.rote = this.getRoteImg(pobj) 

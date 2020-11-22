@@ -5,28 +5,28 @@
     	tachLeftFlag:false,//左边点击
     	tachRightFlag:false,//左边点击
     	box:null,
+        player:null,
     	moveX:0,
-    	rote:0,
         moveY:0,
         speedMove:.05,
-        speed:{
-        	z:0,
-        	x:0,
-        	y:0
-        },
-        takeSpeed:{
-        	z:0,
-        	x:0,
-        	y:0
-        },
-        comitObj:{
-            userId:null,
-            rotation:null,
-            position:null
-        },
-        ani:null,
         ground:null,
-        entity:new Map()
+        leftHand:{},
+        minPisition:{
+            x:null,
+            y:null
+        },
+        getRoteImg:(pobj, acObj)=> {
+          if (pobj.x1 == pobj.x2){
+            acObj.rotate=0;
+          }
+          if (pobj.x1 > pobj.x2) {
+            let atanrotate = (pobj.y1 - pobj.y2) / (pobj.x1 - pobj.x2);
+            acObj.rotate = ~~(Math.atan(atanrotate) / Math.PI * 180) + 90;
+          } else if (pobj.x1 < pobj.x2) {
+            let atanrotate = (pobj.y1 - pobj.y2) / (pobj.x1 - pobj.x2);
+            acObj.rotate = ~~(Math.atan(atanrotate) / Math.PI * 180) + 270;
+          }
+        }
     };
 
     class bugs extends Laya.Script3D{
@@ -37,22 +37,21 @@
             this.camera = null;
             this.flag = true;
             this.result = [];
-            this.position = utl.graphDiagonal.grid[0][9];
-            this.end = utl.graphDiagonal.grid[99][93];
+            this.position = utl.graphDiagonal.grid[0][0];
+            this.end = utl.graphDiagonal.grid[10][0];
             this._position = null;
+            this.updataPositionFlag = true;
         }
         onStart(){
             this.scene =  this.owner.parent;
-            // let temp = utl.graphDiagonal.grid[99][99]
-            // this.tempPosition = utl.postions[temp.x][temp.y]
-            // this.tempGard = utl.graphDiagonal.grid[0][0]
-            
-
              let p = this.position;
              let nextPoint = utl.postions[p.x][p.y];
              this._position = new Laya.Vector3(nextPoint[0], 1, nextPoint[1]);
              Laya.timer.frameLoop(1, this, ()=>{
                 this.owner.transform.position = this._position;
+             });
+             Laya.timer.frameLoop(100, this, ()=>{
+                this.move();
              });
               // this.setGraps()
         }
@@ -68,30 +67,45 @@
             this.moveX = this.moveY*fib;
 
         }
-        tod(){
-            alert(43434);
-        }
 
         move(){
             this.flag = true;
             
         }
+        gradAlgin(){
+            if(this.updataPositionFlag){
+                this.setGraps();
+            }
+        }
         setGraps(){
-            
-            console.log(999);
-            let temp = this;
-            let p =  this.result.shift();
-            let nextPoint = utl.postions[p.x][p.y];
-            console.log(nextPoint);
-            Laya.Tween.to( this._position, { x: nextPoint[0], y: 0, z: nextPoint[1] }, 1000,null,Laya.Handler.create(this,()=>{
-                temp.setGraps();}));
+            if(this.result.length!=0){
+                let temp = this;
+                let p =  this.result.shift();
+                let nextPoint = utl.postions[p.x][p.y];
+                this.position = p;
+                temp.updataPositionFlag = false;
+                Laya.Tween.to( this._position, { x: nextPoint[0], y: 0, z: nextPoint[1] }, 1000,null,Laya.Handler.create(this,()=>{
+                    temp.updataPositionFlag = true;
+                    temp.gradAlgin();
+                }));
+            }
+           
             // Laya.Tween.to( utl.box, { transform.position.x: nextPoint[0], transform.position.y: 1, transform.position.z: nextPoint[1] }, 10000,null,Laya.Handler.create(this,function(){alert(333)}));
+        }
+        getPlayerPosition(){
+            let position = utl.player.transform.position;
+            let minPisition = utl.minPisition;
+            let gx = Math.floor((position.x - utl.ground.min.x) / minPisition.x);
+            let gy = Math.floor((position.z - utl.ground.min.z) / minPisition.y);
+            console.log(gx,gy,'-------------');
+            return  utl.graphDiagonal.grid[gy][gx]
         }
         onUpdate(){
            if(this.flag){
-                this.result = astar.search(utl.graphDiagonal, this.position,  this.end);
+                let end = this.getPlayerPosition();
+                this.result = astar.search(utl.graphDiagonal, this.position, end);
                 this.flag = false;
-                this.setGraps();
+                this.gradAlgin();
            }
             
         }
@@ -161,31 +175,44 @@
             leftFormatMovePosition(px,py) {
               
               // utl.ani.play("hello");
+              // let pobj = {}
+              // pobj.x1 = px //点击
+              // pobj.x2 =this.tx + this.twidth/2
+              // pobj.y1 = py
+              // pobj.y2 = this.ty + this.theight/2
+              // if((px - this.tx - this.twidth/2) / (this.twidth/2) >1){
+              //   utl.takeSpeed.x = 1
+              // }else{
+              //    utl.takeSpeed.x = (px - this.tx - this.twidth/2) / (this.twidth/2) 
+              // }
+              // if((px - this.tx - this.twidth/2) / (this.twidth/2) <-1){
+              //   utl.takeSpeed.x = -1
+              // }else{
+              //    utl.takeSpeed.x = (px - this.tx - this.twidth/2) / (this.twidth/2) 
+              // }
+              // if((py - this.ty - this.theight/2) / (this.theight/2) >1){
+              //    utl.takeSpeed.y = 1
+              // }else{
+              //   utl.takeSpeed.y = (py - this.ty - this.theight/2) / (this.theight/2) 
+              // }
+              // if((py - this.ty - this.theight/2) / (this.theight/2) <-1){
+              //    utl.takeSpeed.y = -1
+              // }else{
+              //   utl.takeSpeed.y = (py - this.ty - this.theight/2) / (this.theight/2) 
+              // }
               let pobj = {};
               pobj.x1 = px; //点击
               pobj.x2 =this.tx + this.twidth/2;
               pobj.y1 = py;
               pobj.y2 = this.ty + this.theight/2;
-              if((px - this.tx - this.twidth/2) / (this.twidth/2) >1){
-                utl.takeSpeed.x = 1;
-              }else{
-                 utl.takeSpeed.x = (px - this.tx - this.twidth/2) / (this.twidth/2); 
-              }
-              if((px - this.tx - this.twidth/2) / (this.twidth/2) <-1){
-                utl.takeSpeed.x = -1;
-              }else{
-                 utl.takeSpeed.x = (px - this.tx - this.twidth/2) / (this.twidth/2); 
-              }
-              if((py - this.ty - this.theight/2) / (this.theight/2) >1){
-                 utl.takeSpeed.y = 1;
-              }else{
-                utl.takeSpeed.y = (py - this.ty - this.theight/2) / (this.theight/2); 
-              }
-              if((py - this.ty - this.theight/2) / (this.theight/2) <-1){
-                 utl.takeSpeed.y = -1;
-              }else{
-                utl.takeSpeed.y = (py - this.ty - this.theight/2) / (this.theight/2); 
-              }
+              // utl.box.transform.rotate(new Laya.Vector3(0, utl.rote* Math.PI / 180, 0), true);
+              // utl.rote = this.getRoteImg(pobj) 
+              let r = 1 / Math.sqrt((pobj.x1 - pobj.x2) * (pobj.x1 - pobj.x2) + (pobj.y1 - pobj.y2) * (pobj.y1 - pobj.y2));
+              utl.moveX = (pobj.x1 - pobj.x2) * r /5;
+              utl.moveY = (pobj.y1 - pobj.y2) * r/5;
+              // utl.box.transform.rotate(new Laya.Vector3(0, -utl.rote* Math.PI / 180, 0), true);
+
+
               // utl.takeSpeed.y = py - this.ty - this.theight/2
               // utl.box.transform.rotate(new Laya.Vector3(0,utl.rote* Math.PI / 180, 0), true);
               // utl.rote = this.getRoteImg(pobj) 
@@ -368,19 +395,95 @@
                 // this.lastPosition.x = 0;
                 // this.lastPosition.y = 0;
                 this.isTwoTouch = false;
+                utl.moveX = 0;
+                utl.moveY = 0;
             }
 
         }
         onUpdate(){
             let touchCount = this.scene.input.touchCount();
             this.flying(touchCount);
-            this.owner.transform.translate(new Laya.Vector3(-utl.takeSpeed.x*utl.speedMove,0,-utl.takeSpeed.y*utl.speedMove),false);
-            utl.cube&&utl.cube.transform.translate(new Laya.Vector3(-utl.takeSpeed.x*utl.speedMove,0,-utl.takeSpeed.y*utl.speedMove),false);
-
+            this.owner.transform.translate(new Laya.Vector3(-utl.moveX*utl.speedMove,0,-utl.moveY*utl.speedMove),false);
+            utl.player&&utl.player.transform.translate(new Laya.Vector3(-utl.moveX*utl.speedMove,0,-utl.moveY*utl.speedMove),false);
+            // utl.cube&&utl.cube.transform.translate(new Laya.Vector3(-utl.moveX*utl.speedMove,0,-utl.moveY*utl.speedMove),false);
         }
         onLateUpdate() {
         }
     }
+
+    let address = 'http://localhost:3000';
+    let HttpRequest = Laya.HttpRequest;
+    let Event       = Laya.Event;
+    let result = {};
+    const getPixels = ()=>
+    {	
+    	return new Promise((reject)=>{
+    		let obj = {};
+    		let hr = new HttpRequest();
+    		// let id = Date.parse(new  Date())
+    		let id = 435;
+    		function onHttpRequestProgress(e){
+    			console.log(e);
+    		}
+    		function onHttpRequestComplete(e){
+    			reject(hr.data);
+    		}
+    		function onHttpRequestError(e){
+    			console.log(e);
+    		}
+    		
+    		hr.once(Event.PROGRESS, undefined, onHttpRequestProgress);
+    		hr.once(Event.COMPLETE, undefined, onHttpRequestComplete);
+    		hr.once(Event.ERROR, undefined, onHttpRequestError);
+    		hr.send(address+'/get-alluser', '', 'get', 'text');
+    	})
+    	
+    	
+    };
+    const getServiceAddress = ()=>
+    {
+    	let hr = new HttpRequest();
+    	function onHttpRequestProgress(e){
+    		console.log(123);
+    	}
+    	function onHttpRequestComplete(e){
+    		result.serviceAddress = JSON.parse(hr.data).data;
+    		login();
+    		console.log(3458888,result);
+    	}
+    	function onHttpRequestError(e){
+    		console.log(534543,e);
+    	}
+    	hr.once(Event.PROGRESS, undefined, onHttpRequestProgress);
+    	hr.once(Event.COMPLETE, undefined, onHttpRequestComplete);
+    	hr.once(Event.ERROR, undefined, onHttpRequestError);
+    	hr.send(address+'/get-socketAddress', '', 'get', 'text');
+    	
+    };
+    const intoRoom = ()=>
+    {
+    	let headers = [
+    		"Content-Type", "application/x-www-form-urlencoded",
+    		'token', result.userInfo.token,
+    		'user_id',result.userInfo.id
+    	];
+    	let hr = new HttpRequest();
+    	function onHttpRequestProgress(e){
+    		console.log(123);
+    	}
+    	function onHttpRequestComplete(e){
+    		socketMain();
+    		console.log(888888888,hr);
+    	}
+    	function onHttpRequestError(e){
+    		console.log(534543,e);
+    	}
+    	hr.once(Event.PROGRESS, undefined, onHttpRequestProgress);
+    	hr.once(Event.COMPLETE, undefined, onHttpRequestComplete);
+    	hr.once(Event.ERROR, undefined, onHttpRequestError);
+    	hr.send(address+'/into-room?roomNo=123', null, 'get', 'text',headers);
+    	
+    };
 
     /**
      * 本示例采用非脚本的方式实现，而使用继承页面基类，实现页面逻辑。在IDE里面设置场景的Runtime属性即可和场景进行关联
@@ -397,15 +500,20 @@
             utl.postions = null;
     		this.loadScene("test/TestScene.scene");
     		this.newScene = Laya.stage.addChild(new Laya.Scene3D());
-            this.setGraph();
+            
 
             // Laya.URL.basePath = "https://xuxin.love/img/1112/";
-            Laya.loader.load("https://xuxin.love/img/1112/res/LayaScene_SampleScene/Conventional/ground.lh", Laya.Handler.create(this, (rf)=>{
-                // console.log('rf------------',rf)
-            }));
-    		let dfp = Laya.Sprite3D.load("res/33/LayaScene_SampleScene/Conventional/abj.lh", Laya.Handler.create(null, (sp)=> {
+            // Laya.loader.load("https://xuxin.love/img/1112/res/LayaScene_SampleScene/Conventional/ground.lh", Laya.Handler.create(this, (rf)=>{
+            //     // console.log('rf------------',rf)
+            // }));
+            //  Laya.loader.load("res/22/end.png", Laya.Handler.create(this, (rf)=>{
+            //     // this.createGridFromAStarMap(rf)
+            //     console.log('rf------------',rf)
+            // }));
+
+    		let dfp = Laya.Sprite3D.load("https://xuxin.love/img/1112/22/LayaScene_SampleScene/Conventional/abj.lh", Laya.Handler.create(null, (sp)=> {
                 this.newScene.addChild(sp);
-                utl.ground = sp;
+                // utl.ground = sp
                 let mode = sp.getChildByName("Obj3d66-1101934-1-638");
                 let sharedMesh = mode.meshFilter.sharedMesh;    
                 let min = mode.meshRenderer.bounds.getMin();
@@ -421,10 +529,11 @@
                     w:max.x - min.x ,
                     h:max.z - min.z
                 };
+                utl.ground = this.ground;
                 this.setAllPosation(this.ground);
                 console.log(this.ground);
-                this.setBox();
-
+                
+                this.setGraph();
                 // staticCollider.isTrigger = true; //标记为触发器,取消物理反馈
                 
                 // utl.cube = cube
@@ -435,19 +544,36 @@
                  // cars.addComponent(Laya.MeshCollider);
                 // let script1 = cars.addComponent(TriggerCollisionScript);
                 // script1.kinematicSprite = this.kinematicSphere;
-                this.setPointBox();
+                // this.setPointBox()
                 // layaMonkey2.transform.position =new Laya.Vector3(0,3,5)
             }));
-            Laya.Sprite3D.load("res/33/LayaScene_SampleScene/Conventional/Camera.lh", Laya.Handler.create(null, (sp)=> {
+            Laya.Sprite3D.load("https://xuxin.love/img/1112/22/LayaScene_SampleScene/Conventional/Camera.lh", Laya.Handler.create(null, (sp)=> {
                 this.newScene.addChild(sp);
                 utl.box = sp;
                 sp.addComponent(MonkeyScript);
 
             }));
-             Laya.Sprite3D.load("res/33/LayaScene_SampleScene/Conventional/Directional Light.lh", Laya.Handler.create(null, (sp)=> {
+             Laya.Sprite3D.load("https://xuxin.love/img/1112/22/LayaScene_SampleScene/Conventional/Directional Light.lh", Laya.Handler.create(null, (sp)=> {
                 this.newScene.addChild(sp);
             }));
+             Laya.Sprite3D.load("https://xuxin.love/img/1112/22/LayaScene_SampleScene/Conventional/Cube.lh", Laya.Handler.create(null, (sp)=> {
+                this.newScene.addChild(sp);
+                utl.player = sp;
+            }));
+             Laya.timer.frameLoop(1000, this, ()=>{
+                this.addBugs();
+             });
             
+        }
+        addBugs(){
+            if(utl.box4){
+                 let bulletClone = utl.box4.clone();
+                //为子弹加控制脚本
+                bulletClone.transform.position =new Laya.Vector3(this.ground.min.x,0,this.ground.min.z);
+                let script = bulletClone.addComponent(bugs);
+                this.newScene.addChild(bulletClone);   
+            }
+           
         }
         setBox(){
             let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(.02,.02,.02)));
@@ -456,23 +582,35 @@
             utl.box4 = box4;
         }
         setGraph(){
-            let list  = [];
-            for(let i=0;i<100;i++){
-                let array = [];
-                for(let o=0;o<100;o++){
-                    array.push(1);
-                }
-                list.push(array);
-            }
-            utl.graphDiagonal = new Graph(list, { diagonal: true });
+            // let list  = []
+            // for(let i=0;i<117;i++){
+            //     let array = []
+            //     for(let o=0;o<100;o++){
+            //         array.push(1)
+            //     }
+            //     list.push(array)
+            // }
+            // utl.graphDiagonal = new Graph(list, { diagonal: true });
+            // this.setBox()
+            getPixels().then((list)=>{
+                console.log(list);
+                utl.graphDiagonal = new Graph(JSON.parse(list), { diagonal: true });
+                this.setBox();
+            });
+            
         }
+        
         setAllPosation({w,h,min,max}){
             let initx = this.ground.min.x; 
             let inity = this.ground.min.z; 
             let pw = w/100;
-            let ph = h/100;
+            let ph = h/117;
+            utl.minPisition = {
+                x:pw,
+                y:ph
+            };
             let list  = [];
-            for(let i=0;i<100;i++){
+            for(let i=0;i<117;i++){
                 let array = [];
                 for(let j=0;j<100;j++){
                     // array.push([pw*j - utl.coeb.x,ph*i -utl.coeb.z])
@@ -569,7 +707,7 @@
                 // console.log(layaMonkey1,sp)
                 utl.ani = layaMonkey1.getComponent(Laya.Animator);
                 //创建一个动画动作状态
-                var state1 = new Laya.AnimatorState();
+                let state1 = new Laya.AnimatorState();
                 //设置动作状态的名称
                 state1.name = "hello";
                 //设置动作状态播放的起始时间（起始时间与结束时间的设置为0-1的百分比数值）  要截取的时间点 / 动画的总时长

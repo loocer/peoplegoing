@@ -7,6 +7,7 @@
 import BugsComponent from "./component/bugsScript.js"
 import CameraComponent from "./component/cameraScript.js"
 import utl from "./utl.js"
+import {getPixels} from "./net.js"
 export default class GameUI extends Laya.Scene {
     constructor() {
         super();
@@ -17,15 +18,20 @@ export default class GameUI extends Laya.Scene {
         utl.postions = null
 		this.loadScene("test/TestScene.scene");
 		this.newScene = Laya.stage.addChild(new Laya.Scene3D());
-        this.setGraph()
+        
 
         // Laya.URL.basePath = "https://xuxin.love/img/1112/";
-        Laya.loader.load("https://xuxin.love/img/1112/res/LayaScene_SampleScene/Conventional/ground.lh", Laya.Handler.create(this, (rf)=>{
-            // console.log('rf------------',rf)
-        }));
-		let dfp = Laya.Sprite3D.load("res/33/LayaScene_SampleScene/Conventional/abj.lh", Laya.Handler.create(null, (sp)=> {
+        // Laya.loader.load("https://xuxin.love/img/1112/res/LayaScene_SampleScene/Conventional/ground.lh", Laya.Handler.create(this, (rf)=>{
+        //     // console.log('rf------------',rf)
+        // }));
+        //  Laya.loader.load("res/22/end.png", Laya.Handler.create(this, (rf)=>{
+        //     // this.createGridFromAStarMap(rf)
+        //     console.log('rf------------',rf)
+        // }));
+
+		let dfp = Laya.Sprite3D.load("https://xuxin.love/img/1112/22/LayaScene_SampleScene/Conventional/abj.lh", Laya.Handler.create(null, (sp)=> {
             this.newScene.addChild(sp);
-            utl.ground = sp
+            // utl.ground = sp
             let mode = sp.getChildByName("Obj3d66-1101934-1-638");
             let sharedMesh = mode.meshFilter.sharedMesh    
             let min = mode.meshRenderer.bounds.getMin()
@@ -41,10 +47,11 @@ export default class GameUI extends Laya.Scene {
                 w:max.x - min.x ,
                 h:max.z - min.z
             }
+            utl.ground = this.ground
             this.setAllPosation(this.ground)
             console.log(this.ground)
-            this.setBox()
-
+            
+            this.setGraph()
             // staticCollider.isTrigger = true; //标记为触发器,取消物理反馈
             
             // utl.cube = cube
@@ -55,19 +62,36 @@ export default class GameUI extends Laya.Scene {
              // cars.addComponent(Laya.MeshCollider);
             // let script1 = cars.addComponent(TriggerCollisionScript);
             // script1.kinematicSprite = this.kinematicSphere;
-            this.setPointBox()
+            // this.setPointBox()
             // layaMonkey2.transform.position =new Laya.Vector3(0,3,5)
         }));
-        Laya.Sprite3D.load("res/33/LayaScene_SampleScene/Conventional/Camera.lh", Laya.Handler.create(null, (sp)=> {
+        Laya.Sprite3D.load("https://xuxin.love/img/1112/22/LayaScene_SampleScene/Conventional/Camera.lh", Laya.Handler.create(null, (sp)=> {
             this.newScene.addChild(sp);
             utl.box = sp
             sp.addComponent(CameraComponent);
 
         }));
-         Laya.Sprite3D.load("res/33/LayaScene_SampleScene/Conventional/Directional Light.lh", Laya.Handler.create(null, (sp)=> {
+         Laya.Sprite3D.load("https://xuxin.love/img/1112/22/LayaScene_SampleScene/Conventional/Directional Light.lh", Laya.Handler.create(null, (sp)=> {
             this.newScene.addChild(sp);
         }));
+         Laya.Sprite3D.load("https://xuxin.love/img/1112/22/LayaScene_SampleScene/Conventional/Cube.lh", Laya.Handler.create(null, (sp)=> {
+            this.newScene.addChild(sp);
+            utl.player = sp
+        }));
+         Laya.timer.frameLoop(1000, this, ()=>{
+            this.addBugs()
+         });
         
+    }
+    addBugs(){
+        if(utl.box4){
+             let bulletClone = utl.box4.clone();
+            //为子弹加控制脚本
+            bulletClone.transform.position =new Laya.Vector3(this.ground.min.x,0,this.ground.min.z)
+            let script = bulletClone.addComponent(BugsComponent);
+            this.newScene.addChild(bulletClone);   
+        }
+       
     }
     setBox(){
         let box4 = this.newScene.addChild(new Laya.MeshSprite3D(Laya.PrimitiveMesh.createBox(.02,.02,.02)));
@@ -76,23 +100,35 @@ export default class GameUI extends Laya.Scene {
         utl.box4 = box4
     }
     setGraph(){
-        let list  = []
-        for(let i=0;i<100;i++){
-            let array = []
-            for(let o=0;o<100;o++){
-                array.push(1)
-            }
-            list.push(array)
-        }
-        utl.graphDiagonal = new Graph(list, { diagonal: true });
+        // let list  = []
+        // for(let i=0;i<117;i++){
+        //     let array = []
+        //     for(let o=0;o<100;o++){
+        //         array.push(1)
+        //     }
+        //     list.push(array)
+        // }
+        // utl.graphDiagonal = new Graph(list, { diagonal: true });
+        // this.setBox()
+        getPixels().then((list)=>{
+            console.log(list)
+            utl.graphDiagonal = new Graph(JSON.parse(list), { diagonal: true });
+            this.setBox()
+        })
+        
     }
+    
     setAllPosation({w,h,min,max}){
         let initx = this.ground.min.x 
         let inity = this.ground.min.z 
         let pw = w/100
-        let ph = h/100
+        let ph = h/117
+        utl.minPisition = {
+            x:pw,
+            y:ph
+        }
         let list  = []
-        for(let i=0;i<100;i++){
+        for(let i=0;i<117;i++){
             let array = []
             for(let j=0;j<100;j++){
                 // array.push([pw*j - utl.coeb.x,ph*i -utl.coeb.z])
@@ -189,7 +225,7 @@ export default class GameUI extends Laya.Scene {
             // console.log(layaMonkey1,sp)
             utl.ani = layaMonkey1.getComponent(Laya.Animator);
             //创建一个动画动作状态
-            var state1 = new Laya.AnimatorState();
+            let state1 = new Laya.AnimatorState();
             //设置动作状态的名称
             state1.name = "hello";
             //设置动作状态播放的起始时间（起始时间与结束时间的设置为0-1的百分比数值）  要截取的时间点 / 动画的总时长

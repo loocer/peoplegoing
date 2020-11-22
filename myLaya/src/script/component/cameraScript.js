@@ -91,15 +91,17 @@ export  default class MonkeyScript extends Laya.Script3D{
             // this.lastPosition.x = 0;
             // this.lastPosition.y = 0;
             this.isTwoTouch = false;
+            utl.moveX = 0
+            utl.moveY = 0
         }
 
     }
     onUpdate(){
         let touchCount = this.scene.input.touchCount();
-        this.flying(touchCount)
-        this.owner.transform.translate(new Laya.Vector3(-utl.takeSpeed.x*utl.speedMove,0,-utl.takeSpeed.y*utl.speedMove),false);
-        utl.cube&&utl.cube.transform.translate(new Laya.Vector3(-utl.takeSpeed.x*utl.speedMove,0,-utl.takeSpeed.y*utl.speedMove),false);
-
+        this.flying(touchCount);
+        this.owner.transform.translate(new Laya.Vector3(-utl.moveX*utl.speedMove,0,-utl.moveY*utl.speedMove),false);
+        utl.player&&utl.player.transform.translate(new Laya.Vector3(-utl.moveX*utl.speedMove,0,-utl.moveY*utl.speedMove),false);
+        // utl.cube&&utl.cube.transform.translate(new Laya.Vector3(-utl.moveX*utl.speedMove,0,-utl.moveY*utl.speedMove),false);
     }
     onLateUpdate() {
     }
